@@ -1,56 +1,58 @@
-# Welcome to your Expo app 👋
+# Genit mobile
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+The Genit iOS and Android app, built with Expo (SDK 58) and Expo Router. It currently covers authentication and onboarding, using the same API as the web app.
 
-## Get started
-
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Run it
 
 ```bash
-npm run reset-project
+npm install
+npm start
 ```
 
-This command will move the starter code to the **example** directory and create a blank **src/app** directory where you can start developing.
+Press `i` for the iOS Simulator or `a` for Android. In development the app calls `http://localhost:8000/api/v1/`; release builds call the live server. Copy `.env.example` to `.env.local` to change this. A physical device needs your computer's LAN IP.
 
-### Other setup steps
+### Without a real backend
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+`gennit-v1-server/.env` points at the production database, so running that server locally writes real accounts and sends real email. To work on these flows safely, use the in-memory mock, where every code is `123456`:
 
-## Learn more
+```bash
+npm run mock-api
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+```bash
+EXPO_PUBLIC_API_URL=http://localhost:8787/api/v1/ npm start
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Sending `000000` as an email code simulates an expired code. Importing a URL containing `fail` simulates a failed import.
 
-## Join the community
+## Google Sign-In
 
-Join our community of developers creating universal apps.
+The button stays hidden until this is set up, and it can't run in Expo Go.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+1. In Google Cloud Console, in the project that owns the web app's client ID, create an iOS OAuth client with the bundle ID `com.trygenit.app`. For Android, create an Android client with the same package name and your signing certificate's SHA-1.
+2. In `.env.local`, set `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` (the web app's client ID) and `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`.
+3. On the server, set `GOOGLE_IOS_CLIENT_ID` and `GOOGLE_ANDROID_CLIENT_ID`, or it rejects tokens from the app.
+4. Make a development build with `npx expo run:ios`, or with `eas build --profile development`.
+
+The mock API accepts Google sign-in without verifying the token, so only the real server proves the whole flow.
+
+## How it fits together
+
+- `src/app/` holds the routes. `_layout.tsx` decides which screens exist from the account's stage: signed out, needs verification, needs onboarding, or ready.
+- `src/features/auth/auth-context.tsx` owns the session. The token lives in the device keychain through `expo-secure-store`.
+- `src/features/onboarding/` holds the three onboarding steps. Progress is saved to the server, so a relaunch resumes where the user left off.
+- `src/lib/api.ts` is the API client. A 401 from a signed-in route ends the session.
+
+## Checks
+
+```bash
+npx tsc --noEmit
+```
+
+```bash
+npx expo lint
+```
+
+```bash
+npx expo-doctor
+```
