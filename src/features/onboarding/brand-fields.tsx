@@ -1,8 +1,9 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Icon, type IconName } from '@/components/icon';
 import { Image } from 'expo-image';
-import { type ComponentProps, type ReactNode, useState } from 'react';
-import { ActivityIndicator, Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { type ReactNode, useState } from 'react';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
+import { Drawer } from '@/components/drawer';
 import { Banner, Button, Field } from '@/components/ui';
 import { errorMessage } from '@/lib/api';
 import { radius, space, useColors } from '@/lib/theme';
@@ -10,7 +11,6 @@ import type { SocialPlatform } from '@/lib/types';
 
 import { pickAndUploadLogo } from './onboarding-api';
 
-type IconName = ComponentProps<typeof Ionicons>['name'];
 
 export const SOCIALS: Record<
   SocialPlatform,
@@ -44,7 +44,7 @@ export function SocialField({
       keyboardType='url'
       autoCapitalize='none'
       autoCorrect={false}
-      leading={<Ionicons name={meta.icon} size={20} color={meta.color ?? colors.text} />}
+      leading={<Icon name={meta.icon} size={20} color={meta.color ?? colors.text} />}
     />
   );
 }
@@ -87,6 +87,49 @@ export function LogoPicker({ uri, onUploaded }: { uri: string; onUploaded: (url:
     }
   };
 
+  // With a logo: a small tile beside a Change link, not a full-width banner.
+  if (uri) {
+    return (
+      <View style={{ gap: space.sm }}>
+        <Pressable
+          accessibilityRole='button'
+          accessibilityLabel='Change logo'
+          disabled={uploading}
+          onPress={pick}
+          style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: space.md, opacity: pressed ? 0.7 : 1 })}
+        >
+          <View
+            style={{
+              width: 64,
+              height: 64,
+              padding: 6,
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+              borderRadius: radius.md,
+              borderWidth: 1,
+              borderColor: colors.border,
+              // White like the org logo tile, so dark or transparent logos stay visible.
+              backgroundColor: '#FFFFFF',
+            }}
+          >
+            {uploading ? (
+              <ActivityIndicator color={colors.primary} />
+            ) : (
+              <Image source={{ uri }} contentFit='contain' style={{ width: '100%', height: '100%' }} />
+            )}
+          </View>
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text style={{ fontSize: 15, fontWeight: '500', color: colors.text }}>Logo</Text>
+            <Text style={{ fontSize: 13, color: colors.textMuted }}>PNG or JPG, up to 5MB</Text>
+          </View>
+          <Text style={{ fontSize: 14, fontWeight: '600', color: colors.primary }}>{uploading ? 'Uploading…' : 'Change'}</Text>
+        </Pressable>
+        <Banner message={error} />
+      </View>
+    );
+  }
+
   return (
     <View style={{ gap: space.sm }}>
       <Pressable
@@ -113,7 +156,7 @@ export function LogoPicker({ uri, onUploaded }: { uri: string; onUploaded: (url:
           <Image source={{ uri }} contentFit='contain' style={{ width: '100%', height: '100%' }} />
         ) : (
           <>
-            <Ionicons name='cloud-upload-outline' size={24} color={colors.textMuted} />
+            <Icon name='cloud-upload-outline' size={24} color={colors.textMuted} />
             <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text }}>Upload your logo</Text>
             <Text style={{ fontSize: 12, color: colors.textMuted }}>PNG or JPG, up to 5MB</Text>
           </>
@@ -121,42 +164,6 @@ export function LogoPicker({ uri, onUploaded }: { uri: string; onUploaded: (url:
       </Pressable>
       <Banner message={error} />
     </View>
-  );
-}
-
-function Sheet({
-  title,
-  visible,
-  onClose,
-  children,
-}: {
-  title: string;
-  visible: boolean;
-  onClose: () => void;
-  children: ReactNode;
-}) {
-  const colors = useColors();
-  return (
-    <Modal visible={visible} animationType='slide' presentationStyle='pageSheet' onRequestClose={onClose}>
-      <View style={{ flex: 1, backgroundColor: colors.background }}>
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: space.lg,
-            borderBottomWidth: 1,
-            borderBottomColor: colors.border,
-          }}
-        >
-          <Text style={{ fontSize: 17, fontWeight: '600', color: colors.text }}>{title}</Text>
-          <Pressable accessibilityRole='button' accessibilityLabel='Close' onPress={onClose} hitSlop={10}>
-            <Ionicons name='close' size={24} color={colors.text} />
-          </Pressable>
-        </View>
-        {children}
-      </View>
-    </Modal>
   );
 }
 
@@ -208,10 +215,10 @@ export function FontPicker({
         <Text numberOfLines={1} style={{ flex: 1, fontSize: 15, color: value ? colors.text : colors.textFaint }}>
           {value || 'Select font'}
         </Text>
-        <Ionicons name='chevron-down' size={16} color={colors.textMuted} />
+        <Icon name='chevron-down' size={16} color={colors.textMuted} />
       </Pressable>
-      <Sheet title={`${label} font`} visible={open} onClose={() => setOpen(false)}>
-        <ScrollView>
+      <Drawer title={`${label} font`} visible={open} onClose={() => setOpen(false)} tall>
+        <View style={{ marginHorizontal: -space.page }}>
           {options.map((font) => (
             <Pressable
               key={font}
@@ -230,11 +237,11 @@ export function FontPicker({
               }}
             >
               <Text style={{ fontSize: 16, color: colors.text }}>{font}</Text>
-              {font === value ? <Ionicons name='checkmark' size={20} color={colors.primary} /> : null}
+              {font === value ? <Icon name='checkmark' size={20} color={colors.primary} /> : null}
             </Pressable>
           ))}
-        </ScrollView>
-      </Sheet>
+        </View>
+      </Drawer>
     </View>
   );
 }
@@ -262,8 +269,7 @@ function ColorSheet({
   const valid = HEX.test(hex);
 
   return (
-    <Sheet title={onRemove ? 'Edit color' : 'Add a color'} visible onClose={onClose}>
-      <ScrollView keyboardShouldPersistTaps='handled' contentContainerStyle={{ gap: space.lg, padding: space.xl }}>
+    <Drawer title={onRemove ? 'Edit color' : 'Add a color'} visible onClose={onClose} tall>
         <View style={{ height: 72, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, backgroundColor: valid ? hex : colors.surface }} />
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.md }}>
           {SWATCHES.map((swatch) => (
@@ -295,8 +301,7 @@ function ColorSheet({
         />
         <Button title='Save color' disabled={!valid} onPress={() => onSave(hex.toUpperCase())} />
         {onRemove ? <Button title='Remove color' variant='danger' onPress={onRemove} /> : null}
-      </ScrollView>
-    </Sheet>
+    </Drawer>
   );
 }
 
@@ -335,7 +340,7 @@ export function ColorEditor({ values, onChange }: { values: string[]; onChange: 
             borderColor: colors.borderStrong,
           }}
         >
-          <Ionicons name='add' size={20} color={colors.textMuted} />
+          <Icon name='add' size={20} color={colors.textMuted} />
         </Pressable>
       ) : null}
       {editing !== null ? (
@@ -404,7 +409,7 @@ export function TagEditor({
               }}
             >
               <Text style={{ fontSize: 14, color: colors.selectedText }}>{value}</Text>
-              <Ionicons name='close' size={14} color={colors.selectedText} />
+              <Icon name='close' size={14} color={colors.selectedText} />
             </Pressable>
           ))}
         </View>
@@ -420,7 +425,7 @@ export function TagEditor({
           trailing={
             draft.trim() ? (
               <Pressable accessibilityRole='button' accessibilityLabel='Add' onPress={add} hitSlop={10}>
-                <Ionicons name='add-circle' size={24} color={colors.primary} />
+                <Icon name='add-circle' size={24} color={colors.primary} />
               </Pressable>
             ) : null
           }

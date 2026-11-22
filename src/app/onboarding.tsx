@@ -114,7 +114,7 @@ function OnboardingHeader({ step }: { step: OnboardingStep }) {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: space.xl,
+        paddingHorizontal: space.page,
         paddingVertical: space.md,
         borderBottomWidth: 1,
         borderBottomColor: colors.border,

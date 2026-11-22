@@ -37,9 +37,36 @@ export type User = {
   username?: string;
   userdp?: string;
   userPlan?: string;
+  creditsRemaining?: number;
+  creditsUsed?: number;
   emailVerified?: boolean;
   signInType?: 'email' | 'google';
   onboarding?: OnboardingRecord | string | null;
+  currentOrganization?: Organization | string | null;
+  allOrganizations?: (Organization | string)[];
+};
+
+export type Organization = {
+  _id: string;
+  businessName: string;
+  businessLogo?: string;
+  businessPlan?: string;
+  owner?: string;
+  businessBio?: string;
+  businessWebsite?: string;
+  industry?: string;
+  brandColors?: string[];
+  primaryColor?: string;
+  secondaryColor?: string;
+  fontHeadline?: string;
+  fontBody?: string;
+  slogan?: string;
+  voiceTone?: string[];
+  mission?: string;
+  vision?: string;
+  aboutUs?: string;
+  values?: string[];
+  socialMediaUrls?: { platform: string; url: string }[];
 };
 
 export type BrandData = {

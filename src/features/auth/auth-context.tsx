@@ -35,6 +35,8 @@ type AuthContextValue = {
   closeAccount: () => Promise<void>;
   refreshUser: () => Promise<void>;
   retry: () => Promise<void>;
+  /** Why the session couldn't be confirmed: no connection, or an error from the server. */
+  unreachableReason: { offline: boolean; message: string } | null;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -64,6 +66,7 @@ export function accountStage(user: User | null) {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<Status>('loading');
+  const [unreachableReason, setUnreachableReason] = useState<AuthContextValue['unreachableReason']>(null);
   const [user, setUser] = useState<User | null>(null);
 
   const clearSession = useCallback(async () => {
@@ -91,6 +94,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await refreshUser();
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) return;
+      // Only a failed connection is "offline"; anything else is the server's answer.
+      const offline = !(error instanceof ApiError) || error.isNetworkError;
+      setUnreachableReason({ offline, message: error instanceof Error ? error.message : '' });
       setStatus('unreachable');
     }
   }, [refreshUser]);
@@ -171,8 +177,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       closeAccount,
       refreshUser,
       retry,
+      unreachableReason,
     }),
-    [status, user, signIn, signUp, signInWithGoogle, signOut, closeAccount, refreshUser, retry]
+    [status, user, signIn, signUp, signInWithGoogle, signOut, closeAccount, refreshUser, retry, unreachableReason]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/components/icon';
 import { type ReactNode, useEffect, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 
@@ -61,9 +61,9 @@ export function StepImport({ header, onComplete, onSkip, skipping, skipError }: 
         subtitle="Paste a website or social profile. We'll sample your colors and draft your brand DNA in seconds."
       />
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: space.sm }}>
-        <Ionicons name='globe-outline' size={26} color={colors.text} />
+        <Icon name='globe-outline' size={26} color={colors.text} />
         {(['facebook', 'instagram', 'linkedin', 'youtube', 'twitter'] as const).map((platform) => (
-          <Ionicons
+          <Icon
             key={platform}
             name={SOCIALS[platform].icon}
             size={26}
@@ -82,7 +82,7 @@ export function StepImport({ header, onComplete, onSkip, skipping, skipError }: 
         autoCorrect={false}
         returnKeyType='go'
         onSubmitEditing={handleImport}
-        leading={<Ionicons name='link-outline' size={20} color={colors.textMuted} />}
+        leading={<Icon name='link-outline' size={20} color={colors.textMuted} />}
       />
       <Button title='Import brand' disabled={!url.trim()} onPress={handleImport} />
       <Divider label='or' />
@@ -90,7 +90,7 @@ export function StepImport({ header, onComplete, onSkip, skipping, skipError }: 
         title='Add brand manually'
         variant='secondary'
         onPress={() => setMode('manual')}
-        icon={<Ionicons name='add' size={20} color={colors.text} />}
+        icon={<Icon name='add' size={20} color={colors.text} />}
       />
       <Button title='Skip for now' variant='ghost' loading={skipping} onPress={onSkip} />
     </Screen>
@@ -183,7 +183,7 @@ function ManualSetup({
         keyboardType='url'
         autoCapitalize='none'
         autoCorrect={false}
-        leading={<Ionicons name='globe-outline' size={18} color={colors.textMuted} />}
+        leading={<Icon name='globe-outline' size={18} color={colors.textMuted} />}
       />
       <Card title='Social profiles'>
         {MANUAL_SOCIALS.map((platform) => (

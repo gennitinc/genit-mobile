@@ -8,7 +8,7 @@ import { space, useColors } from '@/lib/theme';
 export default function WelcomeScreen() {
   const colors = useColors();
   return (
-    <SafeAreaView style={{ flex: 1, padding: space.xl, backgroundColor: colors.background }}>
+    <SafeAreaView style={{ flex: 1, padding: space.page, backgroundColor: colors.background }}>
       <View style={{ flex: 1, justifyContent: 'center', gap: space.xl }}>
         <Logo size={72} />
         <View style={{ gap: space.md }}>

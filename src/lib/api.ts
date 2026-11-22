@@ -37,21 +37,48 @@ export function setAuthToken(token: string | null) {
   authToken = token;
 }
 
+export function getAuthToken() {
+  return authToken;
+}
+
 export function setSessionExpiredHandler(handler: (() => void) | null) {
   onSessionExpired = handler;
 }
 
+type QueryValue = string | number | boolean | null | undefined;
+
 type RequestOptions = {
-  method?: 'GET' | 'POST';
+  method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
   body?: unknown;
   form?: FormData;
+  query?: Record<string, QueryValue>;
   timeoutMs?: number;
 };
+
+/** Builds `?a=1&b=2`, skipping empty values. */
+export function queryString(query: Record<string, QueryValue> = {}) {
+  const parts = Object.entries(query)
+    .filter(([, value]) => value !== undefined && value !== null && value !== '')
+    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`);
+  return parts.length ? `?${parts.join('&')}` : '';
+}
+
+export function apiUrl(path: string, query?: Record<string, QueryValue>) {
+  return `${API_URL}${path}${queryString(query)}`;
+}
+
+/** Headers for requests made outside `api`, such as file downloads. */
+export function authHeaders(): Record<string, string> {
+  return authToken ? { Authorization: `Bearer ${authToken}` } : {};
+}
+
+// 203 is excluded on purpose: `auth/updatepassword` reports an invalid code with it.
+const SUCCESS_STATUSES = new Set([200, 201, 204]);
 
 const DEFAULT_TIMEOUT_MS = 30_000;
 
 export async function api<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { method = options.body || options.form ? 'POST' : 'GET', body, form, timeoutMs } = options;
+  const { method = options.body || options.form ? 'POST' : 'GET', body, form, query, timeoutMs } = options;
 
   const headers: Record<string, string> = { Accept: 'application/json' };
   if (authToken) headers.Authorization = `Bearer ${authToken}`;
@@ -63,7 +90,7 @@ export async function api<T>(path: string, options: RequestOptions = {}): Promis
 
   let response: Response;
   try {
-    response = await fetch(`${API_URL}${path}`, {
+    response = await fetch(apiUrl(path, query), {
       method,
       headers,
       body: form ?? (body ? JSON.stringify(body) : undefined),
@@ -80,11 +107,9 @@ export async function api<T>(path: string, options: RequestOptions = {}): Promis
     clearTimeout(timer);
   }
 
-  const data = await response.json().catch(() => null);
+  const data = response.status === 204 ? null : await response.json().catch(() => null);
 
-  // Only 200 counts as success: `auth/updatepassword` reports an invalid code
-  // with a 203, which would otherwise pass an `ok` check.
-  if (response.status !== 200) {
+  if (!SUCCESS_STATUSES.has(response.status)) {
     if (response.status === 401 && !PUBLIC_PATHS.includes(path)) {
       onSessionExpired?.();
     }

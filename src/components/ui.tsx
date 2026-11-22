@@ -1,4 +1,5 @@
-import { Ionicons } from '@expo/vector-icons';
+import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
+import { Icon } from './icon';
 import { Image } from 'expo-image';
 import { type ComponentRef, type ReactNode, type Ref, useRef, useState } from 'react';
 import {
@@ -15,6 +16,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { radius, space, useColors } from '@/lib/theme';
+
+import { useInDrawer } from './drawer-context';
 
 export type TextInputRef = ComponentRef<typeof TextInput>;
 
@@ -41,12 +44,12 @@ export function Screen({ children, footer, header, centered, underHeader }: Scre
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <ScrollView
+        <ScrollView showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}
           keyboardShouldPersistTaps='handled'
           keyboardDismissMode='interactive'
           contentContainerStyle={{
             flexGrow: 1,
-            padding: space.xl,
+            padding: space.page,
             gap: space.lg,
             justifyContent: centered ? 'center' : 'flex-start',
             width: '100%',
@@ -59,7 +62,7 @@ export function Screen({ children, footer, header, centered, underHeader }: Scre
         {footer ? (
           <View
             style={{
-              paddingHorizontal: space.xl,
+              paddingHorizontal: space.page,
               paddingVertical: space.md,
               borderTopWidth: 1,
               borderTopColor: colors.border,
@@ -104,11 +107,13 @@ export function Heading({ title, subtitle }: { title: string; subtitle?: ReactNo
 type ButtonProps = {
   title: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'dangerSolid';
   loading?: boolean;
   disabled?: boolean;
   icon?: ReactNode;
   flex?: boolean;
+  /** Compact height for toolbars and inline actions. */
+  small?: boolean;
 };
 
 export function Button({
@@ -119,6 +124,7 @@ export function Button({
   disabled,
   icon,
   flex,
+  small,
 }: ButtonProps) {
   const colors = useColors();
   const inactive = disabled || loading;
@@ -127,7 +133,10 @@ export function Button({
     secondary: colors.text,
     ghost: colors.textMuted,
     danger: colors.danger,
+    dangerSolid: '#FFFFFF',
   }[variant];
+  const solid = variant === 'primary' || variant === 'dangerSolid';
+  const solidColor = variant === 'dangerSolid' ? colors.danger : colors.primary;
 
   return (
     <Pressable
@@ -137,24 +146,23 @@ export function Button({
       onPress={onPress}
       style={({ pressed }) => ({
         flex: flex ? 1 : undefined,
-        height: 52,
+        height: small ? 36 : 52,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         gap: space.sm,
-        paddingHorizontal: space.lg,
+        paddingHorizontal: small ? space.md : space.lg,
         borderRadius: radius.md,
         borderWidth: variant === 'secondary' ? 1 : 0,
         borderColor: colors.borderStrong,
         opacity: disabled ? 0.45 : 1,
-        backgroundColor:
-          variant === 'primary'
-            ? pressed
-              ? colors.primaryPressed
-              : colors.primary
-            : pressed
-              ? colors.surfacePressed
-              : 'transparent',
+        backgroundColor: solid
+          ? pressed && variant === 'primary'
+            ? colors.primaryPressed
+            : solidColor
+          : pressed
+            ? colors.surfacePressed
+            : 'transparent',
       })}
     >
       {loading ? (
@@ -162,7 +170,7 @@ export function Button({
       ) : (
         <>
           {icon}
-          <Text style={{ fontSize: 16, fontWeight: '600', color: foreground }}>{title}</Text>
+          <Text style={{ fontSize: small ? 14 : 16, fontWeight: '600', color: foreground }}>{title}</Text>
         </>
       )}
     </Pressable>
@@ -202,7 +210,7 @@ export function Banner({ message, tone = 'error' }: { message?: string; tone?: '
         backgroundColor: error ? colors.dangerSurface : colors.successSurface,
       }}
     >
-      <Ionicons
+      <Icon
         name={error ? 'alert-circle' : 'checkmark-circle'}
         size={18}
         color={error ? colors.danger : colors.success}
@@ -224,6 +232,8 @@ type FieldProps = TextInputProps & {
 
 export function Field({ label, error, leading, trailing, ref, multiline, ...input }: FieldProps) {
   const colors = useColors();
+  // Inside a drawer the sheet must know about the input to move above the keyboard.
+  const Input = (useInDrawer() ? BottomSheetTextInput : TextInput) as typeof TextInput;
   const [focused, setFocused] = useState(false);
   return (
     <View style={{ gap: 6 }}>
@@ -244,7 +254,7 @@ export function Field({ label, error, leading, trailing, ref, multiline, ...inpu
         }}
       >
         {leading}
-        <TextInput
+        <Input
           ref={ref}
           multiline={multiline}
           placeholderTextColor={colors.textFaint}
@@ -291,7 +301,7 @@ export function PasswordField(props: FieldProps) {
           onPress={() => setVisible((value) => !value)}
           hitSlop={10}
         >
-          <Ionicons name={visible ? 'eye-off-outline' : 'eye-outline'} size={20} color={colors.textMuted} />
+          <Icon name={visible ? 'eye-off-outline' : 'eye-outline'} size={20} color={colors.textMuted} />
         </Pressable>
       }
     />

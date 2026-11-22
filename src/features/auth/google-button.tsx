@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/components/icon';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { useState } from 'react';
 import { Platform } from 'react-native';
@@ -55,7 +55,7 @@ export function GoogleButton({ onError }: Props) {
       variant='secondary'
       loading={busy}
       onPress={handlePress}
-      icon={<Ionicons name='logo-google' size={18} color={colors.text} />}
+      icon={<Icon name='logo-google' size={18} color={colors.text} />}
     />
   );
 }

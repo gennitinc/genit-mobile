@@ -1,10 +1,7 @@
 const LIVE_API_URL = 'https://gennit-v1-server-production.up.railway.app/api/v1/';
-const LOCAL_API_URL = 'http://localhost:8000/api/v1/';
 
-const configured = process.env.EXPO_PUBLIC_API_URL;
-
-/** Matches the web app: local server in development, live server in release builds. */
-export const API_URL = withTrailingSlash(configured || (__DEV__ ? LOCAL_API_URL : LIVE_API_URL));
+/** The live server, the same one the web app uses. Set EXPO_PUBLIC_API_URL to use a local server instead. */
+export const API_URL = withTrailingSlash(process.env.EXPO_PUBLIC_API_URL || LIVE_API_URL);
 
 export const WEB_URL = 'https://www.trygenit.com';
 

@@ -36,12 +36,21 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   plugins: [
     'expo-router',
     'expo-secure-store',
+    'expo-video',
+    [
+      '@config-plugins/react-native-webrtc',
+      {
+        microphonePermission: 'Genit uses the microphone for WhatsApp calls with your customers.',
+        cameraPermission: 'Genit uses the camera for video calls with your customers.',
+      },
+    ],
     [
       'expo-image-picker',
       {
-        photosPermission: 'Genit uses your photo library so you can upload your brand logo.',
-        cameraPermission: false,
-        microphonePermission: false,
+        photosPermission: 'Genit uses your photo library so you can upload your logo, post media and attachments.',
+        // Camera and microphone wording comes from the WebRTC plugin above; false here would remove it.
+        cameraPermission: 'Genit uses the camera for video calls with your customers.',
+        microphonePermission: 'Genit uses the microphone for WhatsApp calls with your customers.',
       },
     ],
     [
@@ -49,7 +58,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       {
         backgroundColor: '#000000',
         image: './assets/images/splash-icon.png',
-        imageWidth: 200,
+        imageWidth: 100,
       },
     ],
     ...(googleIosUrlScheme

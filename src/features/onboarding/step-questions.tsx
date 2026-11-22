@@ -1,11 +1,10 @@
-import { Ionicons } from '@expo/vector-icons';
-import { type ComponentProps, type ReactNode, useState } from 'react';
+import { Icon, type IconName } from '@/components/icon';
+import { type ReactNode, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { Banner, Button, Heading, Screen } from '@/components/ui';
 import { radius, space, useColors } from '@/lib/theme';
 
-type IconName = ComponentProps<typeof Ionicons>['name'];
 type Option = { id: string; label: string; icon: IconName };
 
 const ROLES: Option[] = [
@@ -107,7 +106,7 @@ function OptionGrid({
                 backgroundColor: active ? colors.selected : colors.background,
               }}
             >
-              <Ionicons name={option.icon} size={18} color={active ? colors.selectedText : colors.textMuted} />
+              <Icon name={option.icon} size={18} color={active ? colors.selectedText : colors.textMuted} />
               <Text style={{ fontSize: 14, fontWeight: active ? '600' : '400', color: active ? colors.selectedText : colors.text }}>
                 {option.label}
               </Text>
