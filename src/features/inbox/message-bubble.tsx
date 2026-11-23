@@ -355,10 +355,11 @@ function UnsharedContent({
         accessibilityLabel={target ? `Open in ${target.label}` : 'Shared post'}
         disabled={!target}
         onPress={() => target && void Linking.openURL(target.url)}
-        style={{ width, height: 220, alignItems: 'center', justifyContent: 'center' }}
+        style={{ width, height: 220, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}
       >
         {contact?.customerAvatar ? (
-          <Image source={{ uri: contact.customerAvatar }} style={StyleSheet.absoluteFill} contentFit='cover' blurRadius={40} />
+          // Bigger than the card so the blur's faded edges fall outside it and the rim stays even (the web scales it up too).
+          <Image source={{ uri: contact.customerAvatar }} style={{ position: 'absolute', top: -48, left: -48, right: -48, bottom: -48 }} contentFit='cover' blurRadius={40} />
         ) : (
           <View style={[StyleSheet.absoluteFill, { backgroundColor: '#833AB4' }]}>
             <View style={{ position: 'absolute', left: -40, top: -30, width: 200, height: 200, borderRadius: 100, backgroundColor: '#FD1D1D', opacity: 0.55 }} />

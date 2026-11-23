@@ -273,7 +273,7 @@ export default function ChatScreen() {
               </Pressable>
             ) : null}
           </View>
-          <View style={{ paddingHorizontal: space.md, paddingTop: space.xs, paddingBottom: Math.max(insets.bottom, space.md) }}>
+          <View style={{ paddingHorizontal: space.xs, paddingTop: space.xs, paddingBottom: Math.max(insets.bottom, space.md) }}>
             <Composer
               value={draft}
               onChangeText={setDraft}

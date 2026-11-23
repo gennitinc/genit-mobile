@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { ConfirmDrawer, OptionsDrawer } from '@/components/drawer';
+import { SectionDivider } from '@/components/section-divider';
 import { type IconName, OrgLogo, Page, Row, SectionTitle } from '@/components/kit';
 import { useAuth } from '@/features/auth/auth-context';
 import { currentOrganization, useOrganizations } from '@/features/orgs/orgs-api';
@@ -70,6 +71,8 @@ export default function MoreScreen() {
           </Pressable>
         </View>
 
+        <SectionDivider />
+
         <View>
           <View style={{ paddingHorizontal: space.page, paddingBottom: space.xs }}>
             <SectionTitle title='Workspace' />
@@ -87,6 +90,8 @@ export default function MoreScreen() {
             </View>
           ))}
         </View>
+
+        <SectionDivider />
 
         <View>
           <View style={{ paddingHorizontal: space.page, paddingBottom: space.xs }}>

@@ -1,5 +1,16 @@
 import {
   CrownIcon,
+  ComputerIcon,
+  Tablet01Icon,
+  HandGripIcon,
+  BotIcon,
+  CommandLineIcon,
+  SecurityWarningIcon,
+  Redo02Icon,
+  MinusSignIcon,
+  CenterFocusIcon,
+  Unlink01Icon,
+
   CircleArrowUp02Icon,
   Add01Icon,
   AddCircleIcon,
@@ -148,6 +159,16 @@ import type { StyleProp, ViewStyle } from 'react-native';
  */
 const ICONS = {
   'add': Add01Icon,
+  'unlink-outline': Unlink01Icon,
+  'fit-view': CenterFocusIcon,
+  'remove': MinusSignIcon,
+  'arrow-redo': Redo02Icon,
+  'shield-warning-outline': SecurityWarningIcon,
+  'terminal-outline': CommandLineIcon,
+  'bot-outline': BotIcon,
+  'hand-outline': HandGripIcon,
+  'tablet-outline': Tablet01Icon,
+  'desktop-outline': ComputerIcon,
   'add-circle': AddCircleIcon,
   'albums-outline': Album02Icon,
   'alert': Alert02Icon,

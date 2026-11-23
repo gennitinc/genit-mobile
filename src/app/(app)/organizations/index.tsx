@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
 
 import { ConfirmDrawer, OptionsDrawer } from '@/components/drawer';
+import { SectionDivider } from '@/components/section-divider';
 import { IconButton, LoadError, Loading, OrgLogo, Page, Pill, Row } from '@/components/kit';
 import { Banner, Button } from '@/components/ui';
 import { useAuth } from '@/features/auth/auth-context';
@@ -62,6 +63,8 @@ export default function OrganizationsScreen() {
           </Text>
         </View>
 
+        <SectionDivider />
+
         {organizations.isLoading ? (
           <Loading />
         ) : organizations.isError ? (
@@ -91,6 +94,8 @@ export default function OrganizationsScreen() {
             })}
           </View>
         )}
+
+        <SectionDivider />
 
         <View style={{ paddingHorizontal: space.page, gap: space.sm }}>
           <Button

@@ -31,6 +31,8 @@ type DrawerProps = {
   tall?: boolean;
   /** Content handles its own scrolling (e.g. a list). */
   noScroll?: boolean;
+  /** Content takes its own drags (a canvas, a live page): only the handle moves the sheet. */
+  lockContent?: boolean;
 };
 
 /**
@@ -59,7 +61,7 @@ function DrawerBackdrop({ animatedIndex, style }: BottomSheetBackdropProps) {
  * The app's only dialog surface. Every picker, form, detail view and
  * confirmation is a drawer that slides up from the bottom; nothing uses a modal.
  */
-export function Drawer({ visible, onClose, title, children, footer, tall, noScroll }: DrawerProps) {
+export function Drawer({ visible, onClose, title, children, footer, tall, noScroll, lockContent }: DrawerProps) {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const ref = useRef<BottomSheetModal>(null);
@@ -147,6 +149,7 @@ export function Drawer({ visible, onClose, title, children, footer, tall, noScro
   return (
     <BottomSheetModal
       ref={ref}
+      enableContentPanningGesture={!lockContent}
       onAnimate={(_from, to) => {
         if (to !== -1) return;
         dismissing.current = true;

@@ -12,7 +12,8 @@ import { errorMessage } from '@/lib/api';
 import { shareRemoteFile } from '@/lib/files';
 import { radius, space, useColors } from '@/lib/theme';
 
-import { resizeAgentBrowser, stripTimeContext } from './chat-api';
+import { stripTimeContext } from './chat-api';
+import { isLiveBrowserUrl, LiveBrowser } from './live-browser';
 import { AutomationPreview } from './automation-preview';
 import { type ChatPreview, ChatScreenContext, useChatScreen } from './chat-ui';
 import { DesignStudio, type StudioDesign } from './design-studio';
@@ -45,10 +46,11 @@ export function PreviewDrawer({ preview, projectId, onClose, designs, working }:
   // The sheet renders in a portal at the app root, outside the chat screen's context.
   const screen = useChatScreen();
   return (
-    <Drawer visible={!!preview} onClose={onClose} title={previewTitle(preview)} tall noScroll>
+    <Drawer visible={!!preview} onClose={onClose} title={previewTitle(preview)} tall noScroll lockContent={preview?.kind === 'website' || preview?.kind === 'automation'}>
       <ChatScreenContext.Provider value={screen}>
         {working ? <WorkingBar text={working} /> : null}
-        {preview?.kind === 'document' || preview?.kind === 'website' ? <WebPreview preview={preview} projectId={projectId} /> : null}
+        {preview?.kind === 'website' && isLiveBrowserUrl(preview.url) ? <LiveBrowser url={preview.url} displayUrl={preview.displayUrl} /> : null}
+        {preview?.kind === 'document' || (preview?.kind === 'website' && !isLiveBrowserUrl(preview.url)) ? <WebPreview preview={preview} /> : null}
         {preview?.kind === 'media' ? <MediaPreview preview={preview} /> : null}
         {preview?.kind === 'designs' ? <DesignStudio designs={designs} working={!!working} /> : null}
         {preview?.kind === 'automation' ? <AutomationPreview projectId={projectId} /> : null}
@@ -73,7 +75,7 @@ function fileName(url: string, fallback: string) {
   return url.split('/').pop()?.split('?')[0] || fallback;
 }
 
-function WebPreview({ preview, projectId }: { preview: Extract<ChatPreview, { kind: 'document' | 'website' }>; projectId: string }) {
+function WebPreview({ preview }: { preview: Extract<ChatPreview, { kind: 'document' | 'website' }> }) {
   const colors = useColors();
   const [reload, setReload] = useState(0);
   const [saving, setSaving] = useState(false);
@@ -110,13 +112,6 @@ function WebPreview({ preview, projectId }: { preview: Extract<ChatPreview, { ki
       {error ? <Text style={{ paddingHorizontal: space.page, paddingBottom: space.sm, fontSize: 13, color: colors.danger }}>{error}</Text> : null}
       <View
         style={{ flex: 1, marginHorizontal: space.sm, borderRadius: radius.md, overflow: 'hidden', borderWidth: 1, borderColor: colors.border }}
-        onLayout={(event) => {
-          // The agent's browser renders at the size of the screen watching it.
-          if (preview.kind === 'website') {
-            const { width, height } = event.nativeEvent.layout;
-            resizeAgentBrowser(projectId, Math.round(width), Math.round(height)).catch(() => undefined);
-          }
-        }}
       >
         <WebView
           key={reload}

@@ -11,7 +11,7 @@ import { FlatList, Pressable, View } from 'react-native';
 
 import { ConfirmDrawer, OptionsDrawer } from '@/components/drawer';
 import { BrandLogo } from '@/components/brand-logo';
-import { Chip, ChipRow, Empty, IconButton, LoadError, Loading, Page, SearchField } from '@/components/kit';
+import { Chip, ChipRow, Empty, IconButton, LoadError, Page, SearchField } from '@/components/kit';
 import { Banner, Button } from '@/components/ui';
 import { useAuth } from '@/features/auth/auth-context';
 import { ConversationActions } from '@/features/inbox/conversation-actions';

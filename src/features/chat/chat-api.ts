@@ -154,10 +154,6 @@ export const listAgentRuns = (projectId: string) =>
       .sort((a, b) => a.createdAt - b.createdAt)
   );
 
-/** Tells the server-side browser the size of the screen showing its live view. */
-export const resizeAgentBrowser = (projectId: string, width: number, height: number) =>
-  api('agents/browser/viewport', { body: { projectId, width, height } });
-
 // ─── Projects (a chat is a design project) ────────────────────────────────────
 
 export type GenerationItem = {
