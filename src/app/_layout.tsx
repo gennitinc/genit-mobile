@@ -1,4 +1,5 @@
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import { ToastHost } from '@/components/toast';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -32,6 +33,7 @@ export default function RootLayout() {
               <BottomSheetModalProvider>
                 <StatusBar style='auto' />
                 <RootNavigator />
+                <ToastHost />
               </BottomSheetModalProvider>
             </AuthProvider>
           </QueryProvider>

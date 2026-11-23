@@ -11,6 +11,14 @@ export type InboxAttachment = {
   kind: 'image' | 'video' | 'audio' | 'file';
   providerMessageId?: string;
   providerAttachmentId?: string;
+  /** A post or reel someone shared: where it's from, its caption and the post's page. */
+  share?: {
+    platform: string;
+    contentType: 'reel' | 'post' | 'story' | 'video';
+    mediaId?: string;
+    caption?: string;
+    permalink?: string;
+  };
 };
 
 export type InboxConversation = {
@@ -174,6 +182,18 @@ export const createConversation = (body: {
   customerHandle?: string;
   subject?: string;
 }) => api<{ conversation: InboxConversation }>('inbox/conversations', { body }).then((data) => data.conversation);
+
+export type LinkPreview = { url: string; title?: string; description?: string; image?: string; siteName?: string };
+
+/** Title, image and site name for a link in a message, read by the server from the page. */
+export const fetchLinkPreview = (url: string) =>
+  api<{ preview: LinkPreview | null }>('inbox/link-preview', { query: { url } }).then((data) => data.preview);
+
+/** The first web link in a message's text, without trailing punctuation. */
+export function firstLink(text: string) {
+  const match = /https?:\/\/[^\s<>"']+/i.exec(text);
+  return match ? match[0].replace(/[),.!?;:'"\]]+$/, '') : '';
+}
 
 export const syncInbox = (body: { integrationId?: string; platform?: string; continueHistory?: boolean } = {}) =>
   api<{ results: InboxSyncResult[] }>('inbox/sync', { body, timeoutMs: 120_000 }).then((data) => data.results);

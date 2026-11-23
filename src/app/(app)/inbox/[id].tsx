@@ -1,17 +1,18 @@
 import { Icon } from '@/components/icon';
+import { showToast } from '@/components/toast';
 import { BrandLogo } from '@/components/brand-logo';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, FlatList, Keyboard, KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, FlatList, ImageBackground, Keyboard, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, useColorScheme, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ConfirmDrawer, OptionsDrawer } from '@/components/drawer';
 import { Avatar, Empty, IconButton, LoadError, Loading } from '@/components/kit';
 import { Banner, Button } from '@/components/ui';
-import { CallDrawer } from '@/features/inbox/calls/call-drawer';
+import { CALL_PLATFORMS, CallDrawer } from '@/features/inbox/calls/call-drawer';
 import { ConversationActions } from '@/features/inbox/conversation-actions';
 import { EditMessageDrawer, TemplateDrawer } from '@/features/inbox/conversation-drawers';
 import { ChatHeaderSkeleton, ChatSkeleton } from '@/features/inbox/chat-skeleton';
@@ -50,6 +51,9 @@ import { type LocalFile } from '@/lib/files';
 import { platformMeta } from '@/lib/platforms';
 import { radius, space, useColors } from '@/lib/theme';
 
+const INBOX_PATTERN_LIGHT = require('../../../../assets/images/inbox-pattern-light.png');
+const INBOX_PATTERN_DARK = require('../../../../assets/images/inbox-pattern-dark.png');
+
 const MAX_ATTACHMENTS = 4;
 
 type Draft = { reply: string; attachments: InboxAttachment[] };
@@ -59,6 +63,8 @@ const drafts = new Map<string, Draft>();
 
 export default function ConversationScreen() {
   const colors = useColors();
+  const dark = useColorScheme() === 'dark';
+  const [callType] = useState<'audio' | 'video'>('video');
   const queryClient = useQueryClient();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { integrations } = useIntegrations();
@@ -181,6 +187,8 @@ export default function ConversationScreen() {
 
   const meta = platformMeta(conversation.platform);
   const email = isEmail(conversation.platform);
+  const canCall = CALL_PLATFORMS.has(conversation.platform);
+  const announceCalls = () => showToast('Voice and video calls are coming soon to Genit.', 'call-outline');
   const account = integrations.find((item) => item._id === conversation.integration);
   const telegramConnection = (account?.metadata?.businessConnections ?? []).find(
     (connection: { id: string }) => connection.id === conversation.metadata?.businessConnectionId
@@ -237,7 +245,9 @@ export default function ConversationScreen() {
             </View>
           </View>
         </Pressable>
-        {conversation.platform === 'whatsapp' ? <IconButton icon='call-outline' label='Call' onPress={() => setDrawer('call')} /> : null}
+        {/* Voice and video calls are coming soon: the buttons say so instead of calling. */}
+        <IconButton icon='call-outline' label='Voice call, coming soon' onPress={announceCalls} />
+        <IconButton icon='videocam' label='Video call, coming soon' onPress={announceCalls} />
         <IconButton icon='ellipsis-horizontal' label='Conversation actions' busy={update.isPending} onPress={() => setActionsOpen(true)} />
       </View>
 
@@ -257,6 +267,16 @@ export default function ConversationScreen() {
             <Button title='Resume AI' variant='secondary' small loading={update.isPending} onPress={() => update.mutate({ resumeAi: true })} />
           </View>
         ) : null}
+        {/* The web's chat wallpaper, pre-rendered for each theme. Email reads like a document, so it stays plain. */}
+        <View style={{ flex: 1 }}>
+        {email ? null : (
+          <ImageBackground
+            source={dark ? INBOX_PATTERN_DARK : INBOX_PATTERN_LIGHT}
+            resizeMode='repeat'
+            style={StyleSheet.absoluteFill}
+            imageStyle={{ resizeMode: 'repeat' }}
+          />
+        )}
         {list.length === 0 ? (
           // An inverted list draws its empty state upside down at the bottom, so placeholders render outside it.
           messages.isLoading ? (
@@ -284,6 +304,8 @@ export default function ConversationScreen() {
               <MessageBubble
                 message={item}
                 email={email}
+                platform={conversation.platform}
+                contact={conversation}
                 onLongPress={
                   canEditMessage(item)
                     ? () => {
@@ -298,8 +320,9 @@ export default function ConversationScreen() {
             )}
           />
         )}
+        </View>
 
-        <View style={{ padding: space.md, gap: space.sm, borderTopWidth: 1, borderTopColor: colors.border }}>
+        <View style={{ padding: space.md, gap: space.sm, borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.background }}>
           <Banner message={error} />
           {blockedReason ? (
             <View style={{ gap: space.sm }}>
@@ -397,7 +420,7 @@ export default function ConversationScreen() {
                       hitSlop={6}
                       style={({ pressed }) => ({ width: 36, height: 40, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.6 : 1 })}
                     >
-                      {draft.isPending ? <ActivityIndicator size='small' color={colors.primary} /> : <Icon name='sparkles' size={20} color={colors.primary} />}
+                      {draft.isPending ? <ActivityIndicator size='small' color={colors.primary} /> : <Icon name='ai-enhance' size={20} color={colors.primary} />}
                     </Pressable>
                   ) : null}
                 </View>
@@ -428,7 +451,7 @@ export default function ConversationScreen() {
         conversation={conversation}
         visible={actionsOpen}
         onClose={() => setActionsOpen(false)}
-        onCall={conversation.platform === 'whatsapp' ? () => setDrawer('call') : undefined}
+        onCall={announceCalls}
         onDeleted={() => router.back()}
         onError={setError}
       />
@@ -504,7 +527,7 @@ export default function ConversationScreen() {
         }}
       />
       <TemplateDrawer conversationId={id} visible={drawer === 'template'} onClose={() => setDrawer(null)} />
-      {conversation.platform === 'whatsapp' ? <CallDrawer conversation={conversation} visible={drawer === 'call'} onClose={() => setDrawer(null)} /> : null}
+      {canCall ? <CallDrawer conversation={conversation} visible={drawer === 'call'} onClose={() => setDrawer(null)} callType={callType} /> : null}
     </SafeAreaView>
   );
 }

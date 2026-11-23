@@ -92,3 +92,47 @@ export function ChatHeaderSkeleton() {
     </Animated.View>
   );
 }
+
+/** Conversation rows' shapes: name width, whether a subject line shows, preview line widths. */
+const LIST_ROWS: { name: DimensionValue; subject: boolean; preview: DimensionValue[] }[] = [
+  { name: '42%', subject: true, preview: ['92%', '64%'] },
+  { name: '30%', subject: false, preview: ['78%'] },
+  { name: '50%', subject: true, preview: ['88%', '52%'] },
+  { name: '36%', subject: false, preview: ['70%'] },
+  { name: '46%', subject: true, preview: ['94%', '58%'] },
+  { name: '28%', subject: false, preview: ['66%'] },
+  { name: '40%', subject: false, preview: ['82%'] },
+];
+
+/**
+ * Placeholder inbox list while conversations load: the same layout as a
+ * conversation row (photo with its platform badge, name and time, subject,
+ * two-line preview), pulsing together.
+ */
+export function ConversationListSkeleton({ rows = LIST_ROWS.length }: { rows?: number }) {
+  const colors = useColors();
+  const pulse = usePulse();
+  const block = colors.surfacePressed;
+  return (
+    <Animated.View accessible accessibilityRole='progressbar' accessibilityLabel='Loading conversations' style={pulse}>
+      {LIST_ROWS.slice(0, rows).map((row, index) => (
+        <View key={index} style={{ flexDirection: 'row', gap: space.md, paddingHorizontal: space.page, paddingVertical: space.md }}>
+          <View style={{ width: 48, height: 48 }}>
+            <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: block }} />
+            <View style={{ position: 'absolute', right: -2, bottom: -2, width: 20, height: 20, borderRadius: 10, borderWidth: 3, borderColor: colors.background, backgroundColor: block }} />
+          </View>
+          <View style={{ flex: 1, gap: 8, paddingTop: 4 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <View style={{ width: row.name, height: 13, borderRadius: 6, backgroundColor: block }} />
+              <View style={{ width: 28, height: 10, borderRadius: 5, backgroundColor: block }} />
+            </View>
+            {row.subject ? <View style={{ width: '58%', height: 11, borderRadius: 5, backgroundColor: block }} /> : null}
+            {row.preview.map((width, line) => (
+              <View key={line} style={{ width, height: 10, borderRadius: 5, backgroundColor: block, opacity: 0.8 }} />
+            ))}
+          </View>
+        </View>
+      ))}
+    </Animated.View>
+  );
+}

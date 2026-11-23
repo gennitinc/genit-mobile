@@ -481,12 +481,15 @@ export function SelectField({
   placeholder = 'Select',
   onPress,
   error,
+  leading,
 }: {
   label?: string;
   value?: string;
   placeholder?: string;
   onPress: () => void;
   error?: string;
+  /** An icon or logo before the value, like a field's leading icon. */
+  leading?: ReactNode;
 }) {
   const colors = useColors();
   return (
@@ -508,6 +511,7 @@ export function SelectField({
           backgroundColor: colors.background,
         }}
       >
+        {leading}
         <Text numberOfLines={1} style={{ flex: 1, fontSize: 16, color: value ? colors.text : colors.textFaint }}>
           {value || placeholder}
         </Text>

@@ -102,6 +102,14 @@ export default function MoreScreen() {
           <RowDivider />
           <Row
             spacious
+            title='Billing'
+            subtitle={`${user?.userPlan || 'Basic'} plan · ${(user?.creditsRemaining ?? 0).toLocaleString()} credits`}
+            leading={<Icon name='card-outline' size={22} color={iconColor} />}
+            onPress={() => router.push('/billing')}
+          />
+          <RowDivider />
+          <Row
+            spacious
             title='Appearance'
             subtitle={currentAppearance.label}
             leading={<Icon name={currentAppearance.icon} size={22} color={iconColor} />}

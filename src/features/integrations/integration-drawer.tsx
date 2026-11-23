@@ -1,4 +1,7 @@
 import { BrandLogo } from '@/components/brand-logo';
+import { ProCrown } from '@/components/pro-crown';
+import { router } from 'expo-router';
+import { isProPlugin, useIsFreePlan } from '@/lib/plan';
 import { useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { useState } from 'react';
@@ -33,6 +36,7 @@ export function IntegrationDrawer({ item, onClose }: Props) {
   const colors = useColors();
   const queryClient = useQueryClient();
   const { integrations } = useIntegrations();
+  const freePlan = useIsFreePlan();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -45,6 +49,8 @@ export function IntegrationDrawer({ item, onClose }: Props) {
   const activeCount = connections.filter((connection) => connection.status === 'active').length;
   const hasActive = activeCount > 0;
   const limited = singleAccount && hasActive;
+  // Gmail and Outlook are free; other plugins need Pro to connect (the server enforces it too).
+  const needsPro = !!item && freePlan && isProPlugin(item) && !hasActive;
   const refresh = () => queryClient.invalidateQueries({ queryKey: integrationsKey });
 
   const close = () => {
@@ -112,6 +118,22 @@ export function IntegrationDrawer({ item, onClose }: Props) {
 
         {item?.status === 'soon' ? (
           <Pill label='Coming soon' />
+        ) : needsPro ? (
+          <View style={{ gap: space.sm }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, padding: space.md, borderRadius: radius.md, backgroundColor: 'rgba(229,164,0,0.12)' }}>
+              <ProCrown size={20} />
+              <Text style={{ flex: 1, fontSize: 14, lineHeight: 20, color: colors.text }}>
+                {item?.name} is a Pro plugin. Gmail and Outlook are free on every plan.
+              </Text>
+            </View>
+            <Button
+              title='Upgrade to Pro'
+              onPress={() => {
+                close();
+                router.push('/billing');
+              }}
+            />
+          </View>
         ) : (
           <View style={{ gap: space.sm }}>
             <Button

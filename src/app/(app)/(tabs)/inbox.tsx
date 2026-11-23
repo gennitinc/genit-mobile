@@ -1,4 +1,7 @@
 import { Icon } from '@/components/icon';
+import { ConversationListSkeleton } from '@/features/inbox/chat-skeleton';
+import { ProCrown } from '@/components/pro-crown';
+import { useIsFreePlan } from '@/lib/plan';
 import { useTabBarSpace } from '@/components/glass-tab-bar';
 import { PullRefresh } from '@/components/pull-refresh';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -103,6 +106,7 @@ function syncSummary(results: InboxSyncResult[], continueHistory: boolean, accou
 export default function InboxScreen() {
   const colors = useColors();
   const tabBarSpace = useTabBarSpace();
+  const freePlan = useIsFreePlan();
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const org = currentOrganization(user);
@@ -190,7 +194,8 @@ export default function InboxScreen() {
   const reachedEnd = () => {
     if (conversations.isFetchingNextPage || sync.isPending) return;
     if (conversations.hasNextPage) return void conversations.fetchNextPage();
-    if (cursorKey && requestedCursor.current !== cursorKey) {
+    // Older history is a Pro import, so free plans stop at what's already synced.
+    if (!freePlan && cursorKey && requestedCursor.current !== cursorKey) {
       requestedCursor.current = cursorKey;
       sync.mutate({ continueHistory: true, quiet: true });
     }
@@ -340,7 +345,7 @@ export default function InboxScreen() {
         }
         ListEmptyComponent={
           conversations.isLoading ? (
-            <Loading />
+            <ConversationListSkeleton />
           ) : conversations.isError ? (
             <LoadError error={conversations.error} onRetry={conversations.refetch} />
           ) : accounts.length === 0 ? (
@@ -354,7 +359,7 @@ export default function InboxScreen() {
             <Empty icon='mail-open-outline' title='No conversations' message={search ? 'Nothing matches your search.' : 'New messages will show up here.'} />
           )
         }
-        ListFooterComponent={conversations.isFetchingNextPage || (sync.isPending && list.length > 0) ? <Loading /> : undefined}
+        ListFooterComponent={conversations.isFetchingNextPage || (sync.isPending && list.length > 0) ? <ConversationListSkeleton rows={2} /> : undefined}
         renderItem={({ item }) => (
           <ConversationRow
             conversation={item}
@@ -405,7 +410,15 @@ export default function InboxScreen() {
               ]
             : []),
           ...(withHistory.length && !sync.isPending
-            ? [{ value: 'history', label: 'Import older history', description: 'Pull earlier messages where the channel allows it' }]
+            ? [
+                {
+                  value: 'history',
+                  label: 'Import older history',
+                  // A Pro feature: free plans keep syncing recent messages.
+                  description: freePlan ? 'Pro · Pull earlier messages from your channels' : 'Pull earlier messages where the channel allows it',
+                  icon: freePlan ? <ProCrown size={20} /> : undefined,
+                },
+              ]
             : []),
           ...(unread ? [{ value: 'readAll', label: 'Mark all as read' }] : []),
           { value: 'select', label: 'Select conversations' },
@@ -414,7 +427,10 @@ export default function InboxScreen() {
         onSelect={(action) => {
           setNotice('');
           if (action === 'sync' && !sync.isPending) sync.mutate({ continueHistory: false });
-          if (action === 'history') sync.mutate({ continueHistory: true });
+          if (action === 'history') {
+            if (freePlan) router.push('/billing');
+            else sync.mutate({ continueHistory: true });
+          }
           if (action === 'readAll') readAll.mutate();
           if (action === 'select') setSelecting(true);
           if (action === 'channels') router.push('/plugins');

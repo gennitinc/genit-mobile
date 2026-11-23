@@ -322,7 +322,7 @@ export function Composer({ value, onChangeText, placeholder = 'Ask Genit anythin
           <View style={{ flex: 1 }} />
           {/* Shown once there's something to improve, to keep the bar light. */}
           {value.trim().length >= 2 ? (
-            <ToolButton icon='sparkles-outline' label='Improve my prompt' onPress={enhance} busy={enhancing} disabled={sending} />
+            <ToolButton icon='ai-enhance' label='Enhance with AI' onPress={enhance} busy={enhancing} disabled={sending} />
           ) : null}
           <Pressable
             accessibilityRole='button'

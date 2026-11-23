@@ -1,4 +1,6 @@
 import { Icon } from '@/components/icon';
+import { ProCrown } from '@/components/pro-crown';
+import { isProPlugin, useIsFreePlan } from '@/lib/plan';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
@@ -55,6 +57,8 @@ function LogoTile({ item }: { item: CatalogItem }) {
 
 function PluginListRow({ item, connected, onPress }: { item: CatalogItem; connected: boolean; onPress: () => void }) {
   const colors = useColors();
+  // On the free plan, plugins other than Gmail and Outlook carry a gold crown.
+  const pro = useIsFreePlan() && isProPlugin(item) && !connected;
   return (
     <Pressable
       accessibilityRole='button'
@@ -70,9 +74,12 @@ function PluginListRow({ item, connected, onPress }: { item: CatalogItem; connec
     >
       <LogoTile item={item} />
       <View style={{ flex: 1, paddingLeft: space.md, paddingRight: space.sm, gap: 2 }}>
-        <Text numberOfLines={1} style={{ fontSize: 15, fontWeight: '600', letterSpacing: -0.2, color: colors.text }}>
-          {item.name}
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <Text numberOfLines={1} style={{ flexShrink: 1, fontSize: 15, fontWeight: '600', letterSpacing: -0.2, color: colors.text }}>
+            {item.name}
+          </Text>
+          {pro ? <ProCrown /> : null}
+        </View>
         <Text numberOfLines={2} style={{ fontSize: 13, lineHeight: 17, color: colors.textMuted }}>
           {item.description}
         </Text>
@@ -93,7 +100,7 @@ function PluginListRow({ item, connected, onPress }: { item: CatalogItem; connec
             backgroundColor: pressed ? colors.primaryPressed : colors.primary,
           })}
         >
-          <Text style={{ fontSize: 13, fontWeight: '600', color: colors.onPrimary }}>Connect</Text>
+          <Text style={{ fontSize: 13, fontWeight: '600', color: colors.onPrimary }}>{pro ? 'Upgrade' : 'Connect'}</Text>
         </Pressable>
       )}
     </Pressable>

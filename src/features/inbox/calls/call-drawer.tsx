@@ -16,7 +16,21 @@ import { createCall, endCall, fetchConversationCalls, requestCallPermission } fr
 
 const PROVIDER = { google_meet: 'Google Meet', microsoft_teams: 'Microsoft Teams' } as const;
 
-export function CallDrawer({ conversation, visible, onClose }: { conversation: InboxConversation; visible: boolean; onClose: () => void }) {
+/** Chat platforms Genit can call on: WhatsApp natively, the rest with a meeting link sent in the chat. Email has none. */
+export const CALL_PLATFORMS = new Set(['whatsapp', 'instagram', 'messenger', 'facebook', 'telegram', 'x', 'linkedin', 'slack']);
+
+export function CallDrawer({
+  conversation,
+  visible,
+  onClose,
+  callType = 'video',
+}: {
+  conversation: InboxConversation;
+  visible: boolean;
+  onClose: () => void;
+  /** Which header button opened it: the meeting link is sent as an audio or a video call. */
+  callType?: 'audio' | 'video';
+}) {
   const colors = useColors();
   const queryClient = useQueryClient();
   const [message, setMessage] = useState('');
@@ -62,7 +76,7 @@ export function CallDrawer({ conversation, visible, onClose }: { conversation: I
 
   return (
     <>
-      <Drawer visible={visible} onClose={onClose} title={`Call ${conversation.customerName}`} tall>
+      <Drawer visible={visible} onClose={onClose} title={`${callType === 'audio' ? 'Voice' : 'Video'} call ${conversation.customerName}`}>
         <Banner message={error} />
         <Banner tone='success' message={notice} />
         {calls.isLoading ? (
@@ -73,7 +87,7 @@ export function CallDrawer({ conversation, visible, onClose }: { conversation: I
           <>
             <Field label='Message (optional)' value={message} onChangeText={setMessage} placeholder='Sent with the invite or request' multiline />
 
-            {native?.available ? (
+            {conversation.platform !== 'whatsapp' ? null : native?.available ? (
               native.permissionGranted ? (
                 <Button
                   title='Start WhatsApp call'
@@ -123,14 +137,14 @@ export function CallDrawer({ conversation, visible, onClose }: { conversation: I
               ? providers.map((provider) => (
                   <Button
                     key={provider}
-                    title={`Send ${PROVIDER[provider]} link`}
+                    title={`Send ${PROVIDER[provider]} ${callType === 'audio' ? 'voice' : 'video'} call link`}
                     variant='secondary'
                     loading={busy}
                     onPress={() =>
                       run(async () => {
                         const call = await createCall(conversation._id, {
                           mode: 'meeting_link',
-                          callType: 'video',
+                          callType,
                           meetingProvider: provider,
                           message: message.trim() || undefined,
                         });
@@ -139,7 +153,9 @@ export function CallDrawer({ conversation, visible, onClose }: { conversation: I
                     }
                   />
                 ))
-              : null}
+              : (
+                <Banner message='Connect Google Meet, or reconnect Outlook with Teams, to send call links in this chat.' />
+              )}
 
             <SectionTitle title='History' />
             {(calls.data?.calls ?? []).length === 0 ? (

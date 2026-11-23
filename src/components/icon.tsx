@@ -1,4 +1,6 @@
 import {
+  CrownIcon,
+  CircleArrowUp02Icon,
   Add01Icon,
   AddCircleIcon,
   Album02Icon,
@@ -27,6 +29,7 @@ import {
   CancelCircleIcon,
   ChartColumnIcon,
   ChartIncreaseIcon,
+  CreditCardIcon,
   Chatting01Icon,
   CheckmarkCircle02Icon,
   CheckmarkSquare02Icon,
@@ -173,6 +176,7 @@ const ICONS = {
   'call-outline': Call02Icon,
   'camera': Camera01Icon,
   'camera-outline': Camera01Icon,
+  'card-outline': CreditCardIcon,
   'chatbox-ellipses-outline': BubbleChatIcon,
   'chatbubble-ellipses': BubbleChatIcon,
   'chatbubble-outline': Comment01Icon,
@@ -297,6 +301,10 @@ const ICONS = {
   'share-outline': Share08Icon,
   'shield-checkmark-outline': SecurityCheckIcon,
   'shuffle-outline': ShuffleIcon,
+  // The web's "Enhance with AI" and inbox "AI" button icon.
+  'ai-enhance': CircleArrowUp02Icon,
+  // Marks a Pro feature or plugin.
+  'crown': CrownIcon,
   'sparkles': SparklesIcon,
   'happy-outline': SmileIcon,
   'sparkles-outline': SparklesIcon,
