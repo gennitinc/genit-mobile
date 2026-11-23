@@ -4,24 +4,18 @@ import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, w
 
 import { radius, space, useColors } from '@/lib/theme';
 
-type Bubble = { mine: boolean; width: DimensionValue; lines: number; media?: boolean };
+// Two kinds of row, alternating like a real conversation: the customer on the
+// left with an avatar, your replies on the right in the accent colour.
+type Row = { mine: boolean; width: DimensionValue; lines: number };
 
-// A plausible back-and-forth: short and long messages, one photo, both sides.
-const CHAT: Bubble[] = [
-  { mine: false, width: '62%', lines: 2 },
-  { mine: false, width: '40%', lines: 1 },
-  { mine: true, width: '55%', lines: 1 },
-  { mine: false, width: '58%', lines: 0, media: true },
-  { mine: true, width: '70%', lines: 3 },
-  { mine: false, width: '48%', lines: 1 },
-  { mine: true, width: '36%', lines: 1 },
-];
-
-// Emails are full-width cards, so they get a few wide blocks instead of bubbles.
-const EMAIL: Bubble[] = [
-  { mine: false, width: '100%', lines: 5 },
-  { mine: true, width: '100%', lines: 3 },
-  { mine: false, width: '100%', lines: 4 },
+const ROWS: Row[] = [
+  { mine: false, width: '68%', lines: 2 },
+  { mine: true, width: '58%', lines: 1 },
+  { mine: false, width: '52%', lines: 1 },
+  { mine: true, width: '72%', lines: 2 },
+  { mine: false, width: '64%', lines: 2 },
+  { mine: true, width: '46%', lines: 1 },
+  { mine: false, width: '56%', lines: 1 },
 ];
 
 /** One shared pulse, so every block fades in step. Holds still when Reduce Motion is on. */
@@ -35,49 +29,48 @@ function usePulse() {
   return useAnimatedStyle(() => ({ opacity: opacity.value }));
 }
 
-/** Placeholder thread shown while a conversation's messages load. */
-export function ChatSkeleton({ email }: { email?: boolean }) {
+/** Placeholder thread shown while a conversation's messages load, filled from the top. */
+export function ChatSkeleton() {
   const colors = useColors();
   const pulse = usePulse();
-  const block = colors.surfacePressed;
-  const rows = email ? EMAIL : CHAT;
 
   return (
     <View
       accessible
       accessibilityRole='progressbar'
       accessibilityLabel='Loading messages'
-      style={{ flex: 1, justifyContent: 'flex-end', padding: space.lg, gap: space.md, overflow: 'hidden' }}
+      style={{ flex: 1, justifyContent: 'flex-start', padding: space.lg, overflow: 'hidden' }}
     >
-      <Animated.View style={[{ gap: space.md }, pulse]}>
-        {rows.map((row, index) => (
-          <View key={index} style={{ alignItems: row.mine ? 'flex-end' : 'flex-start', gap: 6 }}>
+      <Animated.View style={[{ gap: space.lg }, pulse]}>
+        {ROWS.map((row, index) => (
+          <View key={index} style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: row.mine ? 'flex-end' : 'flex-start', gap: space.sm }}>
+            {row.mine ? null : <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: colors.surfacePressed }} />}
             <View
               style={{
                 width: row.width,
-                padding: space.md,
+                paddingHorizontal: space.md,
+                paddingVertical: 12,
                 gap: 8,
-                borderRadius: email ? radius.md : radius.lg,
-                borderBottomRightRadius: !email && row.mine ? 4 : email ? radius.md : radius.lg,
-                borderBottomLeftRadius: !email && !row.mine ? 4 : email ? radius.md : radius.lg,
-                backgroundColor: colors.surface,
+                borderRadius: radius.lg,
+                borderBottomLeftRadius: row.mine ? radius.lg : 4,
+                borderBottomRightRadius: row.mine ? 4 : radius.lg,
+                backgroundColor: row.mine ? colors.primary : colors.surface,
+                opacity: row.mine ? 0.3 : 1,
               }}
             >
-              {row.media ? <View style={{ height: 150, borderRadius: radius.md, backgroundColor: block }} /> : null}
               {Array.from({ length: row.lines }, (_, line) => (
                 <View
                   key={line}
                   style={{
-                    height: 11,
-                    borderRadius: 6,
+                    height: 10,
+                    borderRadius: 5,
                     // The last line of a paragraph is shorter, like real text.
-                    width: line === row.lines - 1 && row.lines > 1 ? '60%' : '100%',
-                    backgroundColor: block,
+                    width: row.lines > 1 && line === row.lines - 1 ? '55%' : '100%',
+                    backgroundColor: row.mine ? 'rgba(255,255,255,0.7)' : colors.surfacePressed,
                   }}
                 />
               ))}
             </View>
-            <View style={{ width: 34, height: 8, borderRadius: 4, backgroundColor: colors.surface }} />
           </View>
         ))}
       </Animated.View>

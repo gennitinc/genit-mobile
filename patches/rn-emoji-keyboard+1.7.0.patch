@@ -1,0 +1,67 @@
+diff --git a/node_modules/rn-emoji-keyboard/lib/commonjs/components/EmojiCategory.js b/node_modules/rn-emoji-keyboard/lib/commonjs/components/EmojiCategory.js
+index 2c01afd..ce52b51 100644
+--- a/node_modules/rn-emoji-keyboard/lib/commonjs/components/EmojiCategory.js
++++ b/node_modules/rn-emoji-keyboard/lib/commonjs/components/EmojiCategory.js
+@@ -115,9 +115,10 @@ const EmojiCategory = /*#__PURE__*/React.memo(_ref2 => {
+   const keyExtractor = React.useCallback(item => item.name, []);
+   const [maxIndex, setMaxIndex] = React.useState(0);
+ 
+-  // with InteractionManager we can show emojis after interaction is finished
++  // once the UI is idle we can show emojis after interaction is finished
+   // It helps with delay during category change animation
+-  _reactNative.InteractionManager.runAfterInteractions(() => {
++  const runWhenIdle = typeof requestIdleCallback === 'function' ? requestIdleCallback : setTimeout;
++  runWhenIdle(() => {
+     if (maxIndex === 0 && data.length) {
+       setMaxIndex(minimalEmojisAmountToDisplay);
+     }
+diff --git a/node_modules/rn-emoji-keyboard/lib/module/components/EmojiCategory.js b/node_modules/rn-emoji-keyboard/lib/module/components/EmojiCategory.js
+index a858fed..3d97dd3 100644
+--- a/node_modules/rn-emoji-keyboard/lib/module/components/EmojiCategory.js
++++ b/node_modules/rn-emoji-keyboard/lib/module/components/EmojiCategory.js
+@@ -8,7 +8,6 @@ import { useKeyboardStore } from '../store/useKeyboardStore';
+ import { parseEmoji } from '../utils/parseEmoji';
+ import { removeSkinToneModifier } from '../utils/skinToneSelectorUtils';
+ import { useKeyboard } from '../hooks/useKeyboard';
+-import { InteractionManager } from 'react-native';
+ const emptyEmoji = {
+   emoji: '',
+   name: 'blank emoji',
+@@ -108,9 +107,10 @@ export const EmojiCategory = /*#__PURE__*/React.memo(_ref2 => {
+   const keyExtractor = React.useCallback(item => item.name, []);
+   const [maxIndex, setMaxIndex] = React.useState(0);
+ 
+-  // with InteractionManager we can show emojis after interaction is finished
++  // once the UI is idle we can show emojis after interaction is finished
+   // It helps with delay during category change animation
+-  InteractionManager.runAfterInteractions(() => {
++  const runWhenIdle = typeof requestIdleCallback === 'function' ? requestIdleCallback : setTimeout;
++  runWhenIdle(() => {
+     if (maxIndex === 0 && data.length) {
+       setMaxIndex(minimalEmojisAmountToDisplay);
+     }
+diff --git a/node_modules/rn-emoji-keyboard/src/components/EmojiCategory.tsx b/node_modules/rn-emoji-keyboard/src/components/EmojiCategory.tsx
+index 6869a04..4815d5c 100644
+--- a/node_modules/rn-emoji-keyboard/src/components/EmojiCategory.tsx
++++ b/node_modules/rn-emoji-keyboard/src/components/EmojiCategory.tsx
+@@ -14,7 +14,6 @@ import { useKeyboardStore } from '../store/useKeyboardStore'
+ import { parseEmoji } from '../utils/parseEmoji'
+ import { removeSkinToneModifier } from '../utils/skinToneSelectorUtils'
+ import { useKeyboard } from '../hooks/useKeyboard'
+-import { InteractionManager } from 'react-native'
+ 
+ const emptyEmoji: JsonEmoji = {
+   emoji: '',
+@@ -147,9 +146,10 @@ export const EmojiCategory = React.memo(
+ 
+     const [maxIndex, setMaxIndex] = React.useState(0)
+ 
+-    // with InteractionManager we can show emojis after interaction is finished
++    // once the UI is idle we can show emojis after interaction is finished
+     // It helps with delay during category change animation
+-    InteractionManager.runAfterInteractions(() => {
++    const runWhenIdle = typeof requestIdleCallback === 'function' ? requestIdleCallback : setTimeout
++    runWhenIdle(() => {
+       if (maxIndex === 0 && data.length) {
+         setMaxIndex(minimalEmojisAmountToDisplay)
+       }

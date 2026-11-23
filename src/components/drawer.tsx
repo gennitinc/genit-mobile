@@ -4,6 +4,7 @@ import {
   type BottomSheetFooterProps,
   BottomSheetModal,
   BottomSheetScrollView,
+  BottomSheetView,
   useBottomSheet,
 } from '@gorhom/bottom-sheet';
 import { Icon } from './icon';
@@ -181,7 +182,13 @@ export function Drawer({ visible, onClose, title, children, footer, tall, noScro
       topInset={insets.top}
     >
       <InDrawerContext.Provider value>
-        {noScroll ? (
+        {noScroll && !tall ? (
+          // Sized to its content: the sheet can only measure children inside its own view.
+          <BottomSheetView style={{ paddingBottom: footer ? 0 : insets.bottom }}>
+            {children}
+            {footerBar}
+          </BottomSheetView>
+        ) : noScroll ? (
           <View style={{ flex: 1, paddingBottom: footer ? 0 : insets.bottom }}>{children}</View>
         ) : (
           <BottomSheetScrollView
@@ -199,7 +206,7 @@ export function Drawer({ visible, onClose, title, children, footer, tall, noScro
           </BottomSheetScrollView>
         )}
         {/* Drawers that scroll their own content keep the footer in the layout. */}
-        {noScroll ? footerBar : null}
+        {noScroll && tall ? footerBar : null}
       </InDrawerContext.Provider>
     </BottomSheetModal>
   );

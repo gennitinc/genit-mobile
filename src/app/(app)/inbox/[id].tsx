@@ -4,8 +4,8 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tansta
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { ActivityIndicator, FlatList, Keyboard, KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ConfirmDrawer, OptionsDrawer } from '@/components/drawer';
@@ -15,6 +15,7 @@ import { CallDrawer } from '@/features/inbox/calls/call-drawer';
 import { ConversationActions } from '@/features/inbox/conversation-actions';
 import { EditMessageDrawer, TemplateDrawer } from '@/features/inbox/conversation-drawers';
 import { ChatHeaderSkeleton, ChatSkeleton } from '@/features/inbox/chat-skeleton';
+import { EmojiDrawer } from '@/features/inbox/emoji-drawer';
 import { haptic } from '@/features/inbox/haptics';
 import { cachedConversation } from '@/features/inbox/inbox-accounts';
 import {
@@ -93,7 +94,9 @@ export default function ConversationScreen() {
   const setAttachments = (next: (current: InboxAttachment[]) => InboxAttachment[]) => updateDraft((current) => ({ attachments: next(current.attachments) }));
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
-  const [drawer, setDrawer] = useState<'attach' | 'template' | 'call' | null>(null);
+  const [drawer, setDrawer] = useState<'attach' | 'template' | 'call' | 'emoji' | null>(null);
+  // Where the cursor was last, so an emoji lands there rather than at the end.
+  const selection = useRef({ start: reply.length, end: reply.length });
   const [actionsOpen, setActionsOpen] = useState(false);
   const [messageMenu, setMessageMenu] = useState<InboxMessage | null>(null);
   const [editing, setEditing] = useState<InboxMessage | null>(null);
@@ -240,7 +243,7 @@ export default function ConversationScreen() {
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         {conversation.subject ? (
-          <Text numberOfLines={2} style={{ paddingHorizontal: space.page, paddingTop: space.md, fontSize: 15, fontWeight: '600', color: colors.text }}>
+          <Text numberOfLines={2} style={{ paddingHorizontal: space.page, paddingTop: space.md, paddingBottom: space.sm, fontSize: 15, fontWeight: '600', color: colors.text }}>
             {conversation.subject}
           </Text>
         ) : null}
@@ -257,7 +260,7 @@ export default function ConversationScreen() {
         {list.length === 0 ? (
           // An inverted list draws its empty state upside down at the bottom, so placeholders render outside it.
           messages.isLoading ? (
-            <ChatSkeleton email={email} />
+            <ChatSkeleton />
           ) : (
             <View style={{ flex: 1, justifyContent: 'center' }}>
               {messages.isError ? (
@@ -348,7 +351,22 @@ export default function ConversationScreen() {
                     backgroundColor: colors.surface,
                   }}
                 >
+                  <Pressable
+                    accessibilityRole='button'
+                    accessibilityLabel='Add emoji'
+                    onPress={() => {
+                      Keyboard.dismiss();
+                      setDrawer('emoji');
+                    }}
+                    hitSlop={6}
+                    style={({ pressed }) => ({ width: 40, height: 40, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.6 : 1 })}
+                  >
+                    <Icon name='happy-outline' size={22} color={colors.textMuted} />
+                  </Pressable>
                   <TextInput
+                    onSelectionChange={(event) => {
+                      selection.current = event.nativeEvent.selection;
+                    }}
                     value={reply}
                     onChangeText={(text) => setReply(maxLength ? text.slice(0, maxLength) : text)}
                     placeholder={email ? 'Write a reply' : 'Message'}
@@ -358,7 +376,7 @@ export default function ConversationScreen() {
                     style={{
                       flex: 1,
                       maxHeight: 140,
-                      paddingLeft: space.md,
+                      paddingLeft: 0,
                       paddingRight: reply.trim() ? 0 : space.md,
                       paddingTop: 10,
                       paddingBottom: 10,
@@ -473,6 +491,18 @@ export default function ConversationScreen() {
         }}
       />
 
+      <EmojiDrawer
+        visible={drawer === 'emoji'}
+        onClose={() => setDrawer(null)}
+        onPick={(emoji) => {
+          const { start, end } = selection.current;
+          const at = Math.min(start, reply.length);
+          const next = reply.slice(0, at) + emoji + reply.slice(Math.min(Math.max(end, at), reply.length));
+          if (maxLength && next.length > maxLength) return;
+          setReply(next);
+          selection.current = { start: at + emoji.length, end: at + emoji.length };
+        }}
+      />
       <TemplateDrawer conversationId={id} visible={drawer === 'template'} onClose={() => setDrawer(null)} />
       {conversation.platform === 'whatsapp' ? <CallDrawer conversation={conversation} visible={drawer === 'call'} onClose={() => setDrawer(null)} /> : null}
     </SafeAreaView>
