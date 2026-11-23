@@ -1,3 +1,4 @@
+import { GenitMark } from '@/components/genit-mark';
 import { Icon } from '@/components/icon';
 import { useTabBarSpace } from '@/components/glass-tab-bar';
 import { type Href, router } from 'expo-router';
@@ -11,8 +12,8 @@ import { currentOrganization, useOrganizations } from '@/features/orgs/orgs-api'
 import { type AppearancePreference, setAppearance, useAppearancePreference } from '@/lib/appearance';
 import { radius, space, useColors } from '@/lib/theme';
 
-const SECTIONS: { title: string; subtitle: string; icon: IconName; href: Href }[] = [
-  { title: 'Chat with Genit', subtitle: 'Ask, create and automate with AI agents', icon: 'sparkles-outline', href: '/chat' },
+const SECTIONS: { title: string; subtitle: string; icon: IconName; href: Href; genit?: boolean }[] = [
+  { title: 'Chat with Genit', subtitle: 'Ask, create and automate with AI agents', icon: 'sparkles-outline', href: '/chat', genit: true },
   { title: 'Pipeline', subtitle: 'Leads, bookings and your AI sales agent', icon: 'funnel-outline', href: '/pipeline' },
   { title: 'Campaigns', subtitle: 'Plans, outreach and results', icon: 'megaphone-outline', href: '/campaigns' },
   { title: 'Automation', subtitle: 'Workflows that run on their own', icon: 'git-network-outline', href: '/automation' },
@@ -80,7 +81,7 @@ export default function MoreScreen() {
                 spacious
                 title={section.title}
                 subtitle={section.subtitle}
-                leading={<Icon name={section.icon} size={22} color={iconColor} />}
+                leading={section.genit ? <GenitMark size={24} /> : <Icon name={section.icon} size={22} color={iconColor} />}
                 onPress={() => router.push(section.href)}
               />
             </View>

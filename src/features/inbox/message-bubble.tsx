@@ -21,9 +21,15 @@ const STATUS_ICON = {
   failed: 'alert-circle',
 } as const;
 
-/** Belt and braces: the email view's security policy already blocks scripts. */
-function cleanHtml(html: string) {
-  return html.replace(/<script[\s\S]*?<\/script>/gi, '').replace(/<style[\s\S]*?<\/style>/gi, '');
+/**
+ * The HTML to render for an email, like the web: synced Gmail, Outlook and
+ * Composio mail keeps the formatted body in metadata.contentHtml and a plain
+ * copy in content; older or sent messages may hold HTML in content itself.
+ */
+export function emailHtml(message: InboxMessage) {
+  const stored = message.metadata?.contentHtml;
+  if (typeof stored === 'string' && stored.trim()) return stored;
+  return isHtml(message.content) ? message.content : '';
 }
 
 export function MessageBubble({
@@ -43,7 +49,7 @@ export function MessageBubble({
   const { width } = useWindowDimensions();
   const [showQuoted, setShowQuoted] = useState(false);
   const mine = message.senderType !== 'customer';
-  const html = email && isHtml(message.content);
+  const html = email ? emailHtml(message) : '';
 
   const quoteAt = !html && email ? quotedTextStart(message.content) : -1;
   const text = quoteAt > 0 && !showQuoted ? message.content.slice(0, quoteAt).trimEnd() : message.content;
@@ -65,14 +71,18 @@ export function MessageBubble({
           borderRadius: radius.lg,
           borderBottomRightRadius: mine ? 4 : radius.lg,
           borderBottomLeftRadius: mine ? radius.lg : 4,
-          backgroundColor: html ? colors.surface : bubbleColor,
+          // Emails are designed for a white page, so they get one in dark mode too (the web does the same).
+          backgroundColor: html ? '#FFFFFF' : bubbleColor,
+          borderWidth: html ? 1 : 0,
+          borderColor: colors.border,
+          ...(html ? { width: maxWidth, paddingHorizontal: space.sm } : null),
         }}
       >
         {message.senderType === 'bot' ? (
-          <Text style={{ fontSize: 11, fontWeight: '600', color: html ? colors.textMuted : textColor, opacity: 0.8 }}>AI reply</Text>
+          <Text style={{ fontSize: 11, fontWeight: '600', color: html ? '#52525B' : textColor, opacity: 0.8 }}>AI reply</Text>
         ) : null}
         {html ? (
-          <EmailBody html={cleanHtml(message.content)} width={maxWidth - space.md * 2} />
+          <EmailBody html={html} width={maxWidth - space.sm * 2} />
         ) : text ? (
           <Text selectable style={{ fontSize: 15, lineHeight: 21, color: textColor }}>
             {text}
@@ -86,7 +96,7 @@ export function MessageBubble({
           </Pressable>
         ) : null}
         {message.attachments?.map((attachment, index) => (
-          <Attachment key={`${attachment.url}-${index}`} attachment={attachment} tint={html ? colors.text : textColor} />
+          <Attachment key={`${attachment.url}-${index}`} attachment={attachment} tint={html ? '#18181B' : textColor} />
         ))}
       </Pressable>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>

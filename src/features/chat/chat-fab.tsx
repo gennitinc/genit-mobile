@@ -1,4 +1,4 @@
-import { Icon } from '@/components/icon';
+import { GenitMark } from '@/components/genit-mark';
 import { router, usePathname, useSegments } from 'expo-router';
 import { Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -43,7 +43,8 @@ export function ChatFab() {
         elevation: 6,
       })}
     >
-      <Icon name='sparkles' size={24} color={colors.onPrimary} />
+      {/* White, like the sparkles it replaced, so it reads on the purple button. */}
+      <GenitMark size={30} color={colors.onPrimary} />
     </Pressable>
   );
 }

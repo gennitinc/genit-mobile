@@ -120,6 +120,25 @@ export type IntegrationsResponse = {
   identities: unknown[];
 };
 
+/**
+ * Social plugins an organization can connect only one account of (the server
+ * refuses a second). Mail, storage and other tools can have several.
+ */
+export const SINGLE_ACCOUNT_PLATFORMS = new Set([
+  'facebook',
+  'instagram',
+  'messenger',
+  'linkedin',
+  'x',
+  'tiktok',
+  'youtube',
+  'pinterest',
+  'snapchat',
+  'threads',
+  'whatsapp',
+  'telegram',
+]);
+
 export const integrationsKey = ['integrations'] as const;
 
 export function useIntegrations() {

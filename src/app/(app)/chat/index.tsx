@@ -15,13 +15,13 @@ import { radius, space, useColors } from '@/lib/theme';
 
 /** Starting points from the web chat, which fill the box rather than send. */
 const IDEAS = [
-  { icon: 'logo-instagram', text: 'Create a viral Instagram carousel' },
-  { icon: 'megaphone-outline', text: 'Generate scroll-stopping Facebook ads' },
-  { icon: 'logo-youtube', text: 'Design a clickable YouTube thumbnail' },
+  // { icon: 'logo-instagram', text: 'Create a viral Instagram carousel' },
+  // { icon: 'megaphone-outline', text: 'Generate scroll-stopping Facebook ads' },
+  // { icon: 'logo-youtube', text: 'Design a clickable YouTube thumbnail' },
   { icon: 'calendar-outline', text: 'Plan next week’s posts across my channels' },
   { icon: 'mail-outline', text: 'Summarize my unread emails and draft replies' },
   { icon: 'git-network-outline', text: 'Automate a welcome message for new leads' },
-  { icon: 'film-outline', text: 'Generate an engaging video ad' },
+  // { icon: 'film-outline', text: 'Generate an engaging video ad' },
   { icon: 'search-outline', text: 'Research my top 3 competitors' },
 ] as const;
 

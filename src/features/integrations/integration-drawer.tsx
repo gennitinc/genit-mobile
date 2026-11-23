@@ -1,4 +1,4 @@
-import { Icon } from '@/components/icon';
+import { BrandLogo } from '@/components/brand-logo';
 import { useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { useState } from 'react';
@@ -8,13 +8,13 @@ import { ConfirmDrawer, Drawer } from '@/components/drawer';
 import { Avatar, Pill, Toggle } from '@/components/kit';
 import { Banner, Button, Field } from '@/components/ui';
 import { errorMessage } from '@/lib/api';
-import { platformMeta } from '@/lib/platforms';
 import { radius, space, useColors } from '@/lib/theme';
 
 import { connectIntegration } from './connect';
 import {
   type CatalogItem,
   connectionsFor,
+  SINGLE_ACCOUNT_PLATFORMS,
   disconnectIntegration,
   type IntegrationConnection,
   integrationsKey,
@@ -39,7 +39,12 @@ export function IntegrationDrawer({ item, onClose }: Props) {
   const [disconnecting, setDisconnecting] = useState<IntegrationConnection | null>(null);
 
   const connections = item ? connectionsFor(item, integrations) : [];
-  const meta = platformMeta(item?.appSlug ?? item?.platform);
+  // One account per social plugin: once it's connected, the button reconnects
+  // that account instead of adding another.
+  const singleAccount = !!item && !item.appSlug && SINGLE_ACCOUNT_PLATFORMS.has(item.platform);
+  const activeCount = connections.filter((connection) => connection.status === 'active').length;
+  const hasActive = activeCount > 0;
+  const limited = singleAccount && hasActive;
   const refresh = () => queryClient.invalidateQueries({ queryKey: integrationsKey });
 
   const close = () => {
@@ -82,10 +87,11 @@ export function IntegrationDrawer({ item, onClose }: Props) {
               backgroundColor: colors.surface,
             }}
           >
+            {/* The plugin's real logo, the same one its row shows. */}
             {item?.logo ? (
-              <Image source={{ uri: item.logo }} style={{ width: 30, height: 30 }} contentFit='contain' />
+              <Image source={{ uri: item.logo }} style={{ width: 30, height: 30, borderRadius: 6 }} contentFit='contain' />
             ) : (
-              <Icon name={meta.icon} size={26} color={meta.color ?? colors.text} />
+              <BrandLogo platform={item?.appSlug ?? item?.platform} size={30} />
             )}
           </View>
           <Text style={{ flex: 1, fontSize: 14, lineHeight: 20, color: colors.textMuted }}>{item?.description}</Text>
@@ -107,12 +113,21 @@ export function IntegrationDrawer({ item, onClose }: Props) {
         {item?.status === 'soon' ? (
           <Pill label='Coming soon' />
         ) : (
-          <Button
-            title={connections.length ? 'Connect another account' : `Connect ${item?.name ?? ''}`}
-            variant={connections.length ? 'secondary' : 'primary'}
-            loading={busy}
-            onPress={connect}
-          />
+          <View style={{ gap: space.sm }}>
+            <Button
+              title={limited ? 'Reconnect' : connections.length ? 'Connect another account' : `Connect ${item?.name ?? ''}`}
+              variant={connections.length ? 'secondary' : 'primary'}
+              loading={busy}
+              onPress={connect}
+            />
+            {limited ? (
+              <Text style={{ fontSize: 13, lineHeight: 18, color: colors.textMuted, textAlign: 'center' }}>
+                {activeCount > 1
+                  ? `Only one ${item?.name} account can be connected to an organization. These stay connected, but no more can be added; disconnect the extras to keep one.`
+                  : `One ${item?.name} account per organization. To use a different one, disconnect this account first.`}
+              </Text>
+            ) : null}
+          </View>
         )}
       </Drawer>
 

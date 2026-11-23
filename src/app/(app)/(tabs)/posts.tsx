@@ -41,7 +41,7 @@ export default function PostsScreen() {
   const params = useLocalSearchParams<{ compose?: string; campaignId?: string }>();
   const { active } = useIntegrations();
 
-  const [view, setView] = useState<View_>('drafts');
+  const [view, setView] = useState<View_>('live');
   const [search, setSearch] = useState('');
   const [platformFilter, setPlatformFilter] = useState('all');
   const [filterOpen, setFilterOpen] = useState(false);

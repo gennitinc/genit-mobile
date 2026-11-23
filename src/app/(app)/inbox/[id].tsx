@@ -14,6 +14,7 @@ import { Banner, Button } from '@/components/ui';
 import { CallDrawer } from '@/features/inbox/calls/call-drawer';
 import { ConversationActions } from '@/features/inbox/conversation-actions';
 import { EditMessageDrawer, TemplateDrawer } from '@/features/inbox/conversation-drawers';
+import { ChatHeaderSkeleton, ChatSkeleton } from '@/features/inbox/chat-skeleton';
 import { haptic } from '@/features/inbox/haptics';
 import { cachedConversation } from '@/features/inbox/inbox-accounts';
 import {
@@ -156,15 +157,20 @@ export default function ConversationScreen() {
   if (!conversation) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-        <View style={{ padding: space.lg }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.lg, paddingVertical: space.sm, borderBottomWidth: 1, borderBottomColor: colors.border }}>
           <IconButton icon='chevron-back' label='Back' onPress={() => router.back()} />
+          {conversationQuery.isLoading ? <ChatHeaderSkeleton /> : null}
         </View>
         {conversationQuery.isLoading ? (
-          <Loading />
-        ) : conversationQuery.isError ? (
-          <LoadError error={conversationQuery.error} onRetry={conversationQuery.refetch} />
+          <ChatSkeleton />
         ) : (
-          <Empty icon='chatbubble-outline' title='Conversation not found' message='It may have been deleted.' />
+          <View style={{ flex: 1, justifyContent: 'center' }}>
+            {conversationQuery.isError ? (
+              <LoadError error={conversationQuery.error} onRetry={conversationQuery.refetch} />
+            ) : (
+              <Empty icon='chatbubble-outline' title='Conversation not found' message='It may have been deleted.' />
+            )}
+          </View>
         )}
       </SafeAreaView>
     );
@@ -248,35 +254,47 @@ export default function ConversationScreen() {
             <Button title='Resume AI' variant='secondary' small loading={update.isPending} onPress={() => update.mutate({ resumeAi: true })} />
           </View>
         ) : null}
-        <FlatList showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}
-          inverted
-          onEndReached={() => messages.hasNextPage && !messages.isFetchingNextPage && messages.fetchNextPage()}
-          onEndReachedThreshold={0.3}
-          ListFooterComponent={messages.isFetchingNextPage ? <Loading /> : undefined}
-          data={list}
-          keyExtractor={(message) => message._id}
-          contentContainerStyle={{ padding: space.lg, gap: space.md }}
-          keyboardDismissMode='interactive'
-          ListEmptyComponent={
-            messages.isLoading ? <Loading /> : messages.isError ? <LoadError error={messages.error} onRetry={messages.refetch} /> : <Empty icon='chatbubble-outline' title='No messages yet' />
-          }
-          renderItem={({ item }) => (
-            <MessageBubble
-              message={item}
-              email={email}
-              onLongPress={
-                canEditMessage(item)
-                  ? () => {
-                      haptic.select();
-                      setMessageMenu(item);
-                    }
-                  : undefined
-              }
-              onRetry={() => retry.mutate(item._id)}
-              retrying={retry.isPending && retry.variables === item._id}
-            />
-          )}
-        />
+        {list.length === 0 ? (
+          // An inverted list draws its empty state upside down at the bottom, so placeholders render outside it.
+          messages.isLoading ? (
+            <ChatSkeleton email={email} />
+          ) : (
+            <View style={{ flex: 1, justifyContent: 'center' }}>
+              {messages.isError ? (
+                <LoadError error={messages.error} onRetry={messages.refetch} />
+              ) : (
+                <Empty icon='chatbubble-outline' title='No messages yet' />
+              )}
+            </View>
+          )
+        ) : (
+          <FlatList showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}
+            inverted
+            onEndReached={() => messages.hasNextPage && !messages.isFetchingNextPage && messages.fetchNextPage()}
+            onEndReachedThreshold={0.3}
+            ListFooterComponent={messages.isFetchingNextPage ? <Loading /> : undefined}
+            data={list}
+            keyExtractor={(message) => message._id}
+            contentContainerStyle={{ padding: space.lg, gap: space.md }}
+            keyboardDismissMode='interactive'
+            renderItem={({ item }) => (
+              <MessageBubble
+                message={item}
+                email={email}
+                onLongPress={
+                  canEditMessage(item)
+                    ? () => {
+                        haptic.select();
+                        setMessageMenu(item);
+                      }
+                    : undefined
+                }
+                onRetry={() => retry.mutate(item._id)}
+                retrying={retry.isPending && retry.variables === item._id}
+              />
+            )}
+          />
+        )}
 
         <View style={{ padding: space.md, gap: space.sm, borderTopWidth: 1, borderTopColor: colors.border }}>
           <Banner message={error} />
@@ -320,27 +338,51 @@ export default function ConversationScreen() {
                 {supportsAttachments(conversation) ? (
                   <IconButton icon='attach' label='Attach files' busy={uploading} disabled={attachments.length >= MAX_ATTACHMENTS} onPress={() => setDrawer('attach')} />
                 ) : null}
-                <IconButton icon='sparkles' label='Write with AI' busy={draft.isPending} onPress={() => draft.mutate()} />
-                <TextInput
-                  value={reply}
-                  onChangeText={(text) => setReply(maxLength ? text.slice(0, maxLength) : text)}
-                  placeholder={email ? 'Write a reply' : 'Message'}
-                  placeholderTextColor={colors.textFaint}
-                  multiline
-                  accessibilityLabel='Reply'
+                <View
                   style={{
                     flex: 1,
+                    flexDirection: 'row',
+                    alignItems: 'flex-end',
                     minHeight: 40,
-                    maxHeight: 140,
-                    paddingHorizontal: space.md,
-                    paddingTop: 10,
-                    paddingBottom: 10,
                     borderRadius: 20,
-                    fontSize: 16,
-                    color: colors.text,
                     backgroundColor: colors.surface,
                   }}
-                />
+                >
+                  <TextInput
+                    value={reply}
+                    onChangeText={(text) => setReply(maxLength ? text.slice(0, maxLength) : text)}
+                    placeholder={email ? 'Write a reply' : 'Message'}
+                    placeholderTextColor={colors.textFaint}
+                    multiline
+                    accessibilityLabel='Reply'
+                    style={{
+                      flex: 1,
+                      maxHeight: 140,
+                      paddingLeft: space.md,
+                      paddingRight: reply.trim() ? 0 : space.md,
+                      paddingTop: 10,
+                      paddingBottom: 10,
+                      fontSize: 16,
+                      color: colors.text,
+                    }}
+                  />
+                  {/* Rewrites what you've typed with AI, so it only appears once there's text to work with. */}
+                  {reply.trim() || draft.isPending ? (
+                    <Pressable
+                      accessibilityRole='button'
+                      accessibilityLabel='Improve with AI'
+                      disabled={draft.isPending}
+                      onPress={() => {
+                        setError('');
+                        draft.mutate();
+                      }}
+                      hitSlop={6}
+                      style={({ pressed }) => ({ width: 36, height: 40, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.6 : 1 })}
+                    >
+                      {draft.isPending ? <ActivityIndicator size='small' color={colors.primary} /> : <Icon name='sparkles' size={20} color={colors.primary} />}
+                    </Pressable>
+                  ) : null}
+                </View>
                 <Pressable
                   accessibilityRole='button'
                   accessibilityLabel='Send'

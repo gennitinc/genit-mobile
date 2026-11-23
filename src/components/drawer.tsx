@@ -1,14 +1,15 @@
 import {
-  BottomSheetBackdrop,
   type BottomSheetBackdropProps,
   BottomSheetFooter,
   type BottomSheetFooterProps,
   BottomSheetModal,
   BottomSheetScrollView,
+  useBottomSheet,
 } from '@gorhom/bottom-sheet';
 import { Icon } from './icon';
 import { type ReactNode, useEffect, useRef, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, { Extrapolation, interpolate, runOnJS, useAnimatedReaction, useAnimatedStyle } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { errorMessage } from '@/lib/api';
@@ -32,6 +33,28 @@ type DrawerProps = {
 };
 
 /**
+ * The dimmed layer behind a drawer; tapping it closes the drawer. Unlike the library's backdrop,
+ * it lets taps through as soon as the drawer starts closing, so the screen behind (like the
+ * button that opened the drawer) answers straight away instead of ~300ms later.
+ */
+function DrawerBackdrop({ animatedIndex, style }: BottomSheetBackdropProps) {
+  const { close } = useBottomSheet();
+  const [touchable, setTouchable] = useState(false);
+  useAnimatedReaction(
+    () => animatedIndex.value > -0.1,
+    (now, before) => {
+      if (now !== before) runOnJS(setTouchable)(now);
+    }
+  );
+  const fade = useAnimatedStyle(() => ({ opacity: interpolate(animatedIndex.value, [-1, 0], [0, 0.5], Extrapolation.CLAMP) }));
+  return (
+    <Animated.View pointerEvents={touchable ? 'auto' : 'none'} style={[style, { backgroundColor: '#000000' }, fade]}>
+      <Pressable accessibilityLabel='Close' style={StyleSheet.absoluteFill} onPress={() => close()} />
+    </Animated.View>
+  );
+}
+
+/**
  * The app's only dialog surface. Every picker, form, detail view and
  * confirmation is a drawer that slides up from the bottom; nothing uses a modal.
  */
@@ -41,22 +64,38 @@ export function Drawer({ visible, onClose, title, children, footer, tall, noScro
   const ref = useRef<BottomSheetModal>(null);
 
   const presented = useRef(false);
+  // True from the moment the sheet starts sliding away until it has fully closed.
+  const dismissing = useRef(false);
+  // An open asked for while the old sheet is still sliding away; shown once it has closed.
+  const reopen = useRef(false);
 
   useEffect(() => {
     if (visible) {
       presented.current = true;
+      if (dismissing.current) {
+        reopen.current = true;
+        // onDismiss normally shows it once the old sheet is gone; never leave it waiting longer.
+        const timer = setTimeout(() => {
+          if (!reopen.current || !presented.current) return;
+          reopen.current = false;
+          dismissing.current = false;
+          ref.current?.present();
+        }, 700);
+        return () => clearTimeout(timer);
+      }
       ref.current?.present();
     } else if (presented.current) {
       // Dismissing a sheet that was never presented leaves the library stuck
       // in "dismissing", and it then refuses to show the sheet at all.
       presented.current = false;
+      reopen.current = false;
+      // Closing by the screen (the X, a picked option, Save) slides away too; an open asked for
+      // meanwhile must wait for onDismiss, or the library ignores it.
+      dismissing.current = true;
       ref.current?.dismiss();
     }
   }, [visible]);
 
-  const backdrop = (props: BottomSheetBackdropProps) => (
-    <BottomSheetBackdrop {...props} appearsOnIndex={0} disappearsOnIndex={-1} pressBehavior='close' />
-  );
 
   const titleRow = title ? (
     <View
@@ -107,15 +146,32 @@ export function Drawer({ visible, onClose, title, children, footer, tall, noScro
   return (
     <BottomSheetModal
       ref={ref}
+      onAnimate={(_from, to) => {
+        if (to !== -1) return;
+        dismissing.current = true;
+        // Tell the screen the moment the sheet starts closing (swipe or backdrop), not when the
+        // slide-out ends. Otherwise the screen still thinks it is open for ~300ms, and a tap that
+        // reopens it (like the "…" button) changes nothing and is lost.
+        if (presented.current) {
+          presented.current = false;
+          onClose();
+        }
+      }}
       onDismiss={() => {
-        // Already dismissed by the library (swipe, backdrop or close), so the effect must not dismiss again.
-        presented.current = false;
-        onClose();
+        dismissing.current = false;
+        if (reopen.current && presented.current) {
+          reopen.current = false;
+          ref.current?.present();
+        } else if (presented.current) {
+          // Closed without the early notice above; tell the screen now.
+          presented.current = false;
+          onClose();
+        }
       }}
       enableDynamicSizing={!tall}
       snapPoints={tall ? ['92%'] : undefined}
       maxDynamicContentSize={undefined}
-      backdropComponent={backdrop}
+      backdropComponent={DrawerBackdrop}
       keyboardBehavior='interactive'
       keyboardBlurBehavior='restore'
       android_keyboardInputMode='adjustResize'

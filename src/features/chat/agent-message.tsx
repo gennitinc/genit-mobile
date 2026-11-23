@@ -1,4 +1,5 @@
 import { Icon, type IconName } from '@/components/icon';
+import { GenitMark } from '@/components/genit-mark';
 import * as Clipboard from 'expo-clipboard';
 import { Image } from 'expo-image';
 import * as Linking from 'expo-linking';
@@ -78,9 +79,7 @@ export function GenitHeader({ status }: { status?: ReactNode }) {
   const colors = useColors();
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
-      <View style={{ width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.selected }}>
-        <Icon name='sparkles' size={14} color={colors.selectedText} />
-      </View>
+      <GenitMark size={26} />
       <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text }}>Genit</Text>
       <View style={{ flex: 1 }} />
       {status}
