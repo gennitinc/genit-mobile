@@ -165,7 +165,7 @@ export function MetricsBoard({ stats, error, onRetry, channels }: { stats?: Post
       </View>
 
       {activity.length > 1 ? (
-        <View style={[panel, { padding: space.lg, gap: space.lg }]}>
+        <View style={{ paddingVertical: space.lg, gap: space.lg }}>
           <View style={{ gap: 4 }}>
             <Text style={{ fontSize: 12.5, fontWeight: '500', color: colors.textMuted }}>Activity</Text>
             <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: space.sm }}>
