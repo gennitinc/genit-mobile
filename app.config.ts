@@ -14,6 +14,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'Genit',
   slug: 'genit',
+  owner: 'templeajuzie',
+  extra: {
+    ...config.extra,
+    eas: {
+      ...config.extra?.eas,
+      projectId: '834a1781-5a0e-47b8-a350-2874ba9dc4e2',
+    },
+  },
   version: '1.0.0',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
@@ -21,12 +29,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   userInterfaceStyle: 'automatic',
   platforms: ['ios', 'android'],
   ios: {
-    bundleIdentifier: 'com.trygenit.app',
+    bundleIdentifier: 'com.genit.app',
     supportsTablet: true,
     config: { usesNonExemptEncryption: false },
   },
   android: {
-    package: 'com.trygenit.app',
+    package: 'com.genit.app',
     adaptiveIcon: {
       backgroundColor: '#000000',
       foregroundImage: './assets/images/android-icon-foreground.png',

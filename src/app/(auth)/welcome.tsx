@@ -13,7 +13,7 @@ export default function WelcomeScreen() {
         <Logo size={72} />
         <View style={{ gap: space.md }}>
           <Text style={{ fontSize: 38, lineHeight: 44, fontWeight: '700', letterSpacing: -1, color: colors.text }}>
-            Your AI marketing team, in your pocket.
+            Your AI marketing & sales team, in your pocket.
           </Text>
           <Text style={{ fontSize: 17, lineHeight: 25, color: colors.textMuted }}>
             Create content, run campaigns, and grow your brand with Genit.
