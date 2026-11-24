@@ -5,7 +5,9 @@ import type { ConfigContext, ExpoConfig } from 'expo/config';
  * plugin is added only when that client ID is set. Without it the app still runs
  * (including in Expo Go) and simply hides the Google button.
  */
-const googleIosClientId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
+const googleIosClientId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID
+  ?.replace(/^["']|["']$/g, '')
+  .trim();
 const googleIosUrlScheme = googleIosClientId
   ? `com.googleusercontent.apps.${googleIosClientId.replace('.apps.googleusercontent.com', '')}`
   : undefined;

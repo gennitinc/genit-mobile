@@ -177,10 +177,24 @@ export function Button({
   );
 }
 
-type TextLinkProps = { title: string; onPress: () => void; disabled?: boolean };
+type TextLinkProps = {
+  title: string;
+  prefix?: string;
+  onPress: () => void;
+  disabled?: boolean;
+};
 
-export function TextLink({ title, onPress, disabled }: TextLinkProps) {
+export function TextLink({ title, prefix, onPress, disabled }: TextLinkProps) {
   const colors = useColors();
+
+  let questionPrefix = prefix;
+  let linkTitle = title;
+  if (!questionPrefix && title.includes('? ')) {
+    const qIndex = title.indexOf('? ');
+    questionPrefix = title.slice(0, qIndex + 1);
+    linkTitle = title.slice(qIndex + 2);
+  }
+
   return (
     <Pressable
       accessibilityRole='button'
@@ -189,7 +203,14 @@ export function TextLink({ title, onPress, disabled }: TextLinkProps) {
       hitSlop={10}
       style={{ alignSelf: 'center', opacity: disabled ? 0.5 : 1 }}
     >
-      <Text style={{ fontSize: 15, fontWeight: '600', color: colors.primary }}>{title}</Text>
+      <Text style={{ fontSize: 15, fontWeight: '600' }}>
+        {questionPrefix ? (
+          <Text style={{ color: colors.text, fontWeight: '500' }}>
+            {questionPrefix}{' '}
+          </Text>
+        ) : null}
+        <Text style={{ color: colors.primary }}>{linkTitle}</Text>
+      </Text>
     </Pressable>
   );
 }

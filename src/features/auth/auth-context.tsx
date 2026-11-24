@@ -30,7 +30,7 @@ type AuthContextValue = {
   user: User | null;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (input: SignUpInput) => Promise<void>;
-  signInWithGoogle: (idToken: string) => Promise<void>;
+  signInWithGoogle: (idToken: string, referralCode?: string) => Promise<void>;
   signOut: () => Promise<void>;
   closeAccount: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -149,8 +149,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const signInWithGoogle = useCallback(
-    async (idToken: string) => {
-      await startSession(await api<AuthResponse>('auth/google', { body: { idToken } }));
+    async (idToken: string, referralCode?: string) => {
+      await startSession(
+        await api<AuthResponse>('auth/google', {
+          body: {
+            idToken,
+            ...(referralCode ? { referralCode } : {}),
+          },
+        })
+      );
     },
     [startSession]
   );

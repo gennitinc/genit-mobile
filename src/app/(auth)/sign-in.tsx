@@ -82,7 +82,11 @@ export default function SignInScreen() {
         />
       </View>
       <Button title='Sign in' loading={busy} onPress={submit} />
-      <TextLink title='New to Genit? Create an account' onPress={() => router.replace('/sign-up')} />
+      <TextLink
+        prefix='New to Genit?'
+        title='Create an account'
+        onPress={() => router.replace('/sign-up')}
+      />
     </Screen>
   );
 }

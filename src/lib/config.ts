@@ -6,8 +6,12 @@ export const API_URL = withTrailingSlash(process.env.EXPO_PUBLIC_API_URL || LIVE
 /** The marketing site (legal pages, contact). The product itself is on app.trygenit.com. */
 export const WEB_URL = 'https://trygenit.com';
 
-export const GOOGLE_WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
-export const GOOGLE_IOS_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
+export const GOOGLE_WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID
+  ?.replace(/^["']|["']$/g, '')
+  .trim();
+export const GOOGLE_IOS_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID
+  ?.replace(/^["']|["']$/g, '')
+  .trim();
 
 function withTrailingSlash(url: string) {
   return url.endsWith('/') ? url : `${url}/`;

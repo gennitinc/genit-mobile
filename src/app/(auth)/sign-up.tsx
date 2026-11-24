@@ -45,7 +45,7 @@ export default function SignUpScreen() {
       <Banner message={error} />
       {isGoogleAvailable ? (
         <>
-          <GoogleButton onError={setError} />
+          <GoogleButton onError={setError} referralCode={creator?.replace(/^@/, '')} />
           <Divider label='or' />
         </>
       ) : null}
@@ -88,7 +88,11 @@ export default function SignUpScreen() {
         </Text>
         .
       </Text>
-      <TextLink title='Already have an account? Sign in' onPress={() => router.replace('/sign-in')} />
+      <TextLink
+        prefix='Already have an account?'
+        title='Sign in'
+        onPress={() => router.replace('/sign-in')}
+      />
     </Screen>
   );
 }
