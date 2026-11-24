@@ -73,6 +73,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         imageWidth: 100,
       },
     ],
+    './plugins/with-webrtc-proguard',
     ...(googleIosUrlScheme
       ? ([
           ['@react-native-google-signin/google-signin', { iosUrlScheme: googleIosUrlScheme }],

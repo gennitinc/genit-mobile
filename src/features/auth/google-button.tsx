@@ -1,4 +1,4 @@
-import Constants, { ExecutionEnvironment } from 'expo-constants';
+import Constants from 'expo-constants';
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -16,11 +16,21 @@ import { radius, space } from '@/lib/theme';
 
 import { useAuth } from './auth-context';
 
-/** Needs client IDs and a development or store build; Expo Go lacks the native module. */
+/**
+ * Google Sign-In requires the @react-native-google-signin native module, which is
+ * unavailable in plain Expo Go but IS available in dev builds (expo-dev-client),
+ * preview, and production builds.
+ *
+ * expo-constants 58+ reports both Expo Go AND dev-client builds as "storeClient",
+ * so we can't use ExecutionEnvironment to distinguish them. Instead we detect plain
+ * Expo Go by the presence of Constants.expoGoConfig (only set inside Expo Go).
+ */
+const isPlainExpoGo = Boolean((Constants as any).expoGoConfig);
+
 export const isGoogleAvailable =
   Boolean(GOOGLE_WEB_CLIENT_ID) &&
   (Platform.OS !== 'ios' || Boolean(GOOGLE_IOS_CLIENT_ID)) &&
-  Constants.executionEnvironment !== ExecutionEnvironment.StoreClient;
+  !isPlainExpoGo;
 
 export function GoogleColorIcon({ size = 20 }: { size?: number }) {
   return (

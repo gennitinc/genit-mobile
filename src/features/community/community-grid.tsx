@@ -1,7 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { ReportButton } from '@/features/safety/report-button';
 import { api, errorMessage } from '@/lib/api';
-import { Banner } from '@/components/ui';
 import { communityKeys } from './community-api';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
@@ -11,7 +10,7 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-nati
 import { Drawer } from '@/components/drawer';
 import { Icon } from '@/components/icon';
 import { VerifiedBadge } from '@/components/verified-badge';
-import { Button } from '@/components/ui';
+import { Banner, Button } from '@/components/ui';
 import { radius, space, useColors } from '@/lib/theme';
 
 import type { CommunityItem } from './community-api';
