@@ -1,3 +1,8 @@
+import { useQueryClient } from '@tanstack/react-query';
+import { ReportButton } from '@/features/safety/report-button';
+import { api, errorMessage } from '@/lib/api';
+import { Banner } from '@/components/ui';
+import { communityKeys } from './community-api';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useState } from 'react';
@@ -229,6 +234,19 @@ function CreatorChip({ creator, overlay }: { creator: NonNullable<CommunityItem[
 /** The design at full width, its creator, and a way to make your own version. */
 function CommunityPreview({ item, ratio, onClose }: { item: CommunityItem | null; ratio: number; onClose: () => void }) {
   const colors = useColors();
+  const client = useQueryClient();
+  const [error, setError] = useState('');
+  const [blocking, setBlocking] = useState(false);
+  const block = async () => {
+    if (!item?.creator?.id) return;
+    setBlocking(true); setError('');
+    try {
+      await api(`safety/blocks/${item.creator.id}`, { method: 'POST' });
+      await client.invalidateQueries({ queryKey: communityKeys.all });
+      onClose();
+    } catch (caught) { setError(errorMessage(caught)); }
+    finally { setBlocking(false); }
+  };
   const remix = () => {
     if (!item) return;
     onClose();
@@ -250,6 +268,9 @@ function CommunityPreview({ item, ratio, onClose }: { item: CommunityItem | null
             contentFit='contain'
           />
           {item.creator ? <CreatorChip creator={item.creator} /> : null}
+          <ReportButton key={item.id} kind='community' contentId={item.id} />
+          {item.creator?.id ? <Button small variant='ghost' title='Block creator' loading={blocking} onPress={block} /> : null}
+          <Banner message={error} />
           <Text style={{ fontSize: 14, lineHeight: 20, color: colors.textMuted }}>
             Start a chat with this design as your reference, and Genit will make a version for your brand.
           </Text>

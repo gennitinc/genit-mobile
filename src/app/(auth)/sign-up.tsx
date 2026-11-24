@@ -1,3 +1,4 @@
+import { AppleButton } from '@/features/auth/apple-button';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useRef, useState } from 'react';
@@ -43,6 +44,7 @@ export default function SignUpScreen() {
     <Screen underHeader>
       <Heading title='Create your account' subtitle='Start building your brand with Genit.' />
       <Banner message={error} />
+      <AppleButton onError={setError} />
       {isGoogleAvailable ? (
         <>
           <GoogleButton onError={setError} referralCode={creator?.replace(/^@/, '')} />

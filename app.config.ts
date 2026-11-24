@@ -33,6 +33,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     bundleIdentifier: 'com.genit.app',
     supportsTablet: true,
+    usesAppleSignIn: true,
     config: { usesNonExemptEncryption: false },
   },
   android: {
@@ -45,6 +46,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   plugins: [
     'expo-router',
+    'expo-apple-authentication',
     'expo-secure-store',
     'expo-video',
     [

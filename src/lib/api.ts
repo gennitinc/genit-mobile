@@ -24,6 +24,8 @@ const PUBLIC_PATHS = [
   'auth/sign-in',
   'auth/sign-up',
   'auth/google',
+  'auth/apple',
+  'auth/apple/challenge',
   'auth/forgot-password',
   'auth/verifypasswordresetoken',
   'auth/updatepassword',

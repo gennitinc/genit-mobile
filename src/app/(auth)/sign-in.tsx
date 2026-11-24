@@ -1,3 +1,4 @@
+import { AppleButton } from '@/features/auth/apple-button';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
 import { View } from 'react-native';
@@ -41,6 +42,7 @@ export default function SignInScreen() {
       <Heading title='Welcome back' subtitle='Sign in to your Genit account.' />
       {!error ? <Banner tone='success' message={notice} /> : null}
       <Banner message={error} />
+      <AppleButton onError={setError} />
       {isGoogleAvailable ? (
         <>
           <GoogleButton onError={setError} />

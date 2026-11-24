@@ -9,7 +9,7 @@ export type CommunityItem = {
   alt: string;
   category?: string;
   /** Set for designs made and published by Genit creators. */
-  creator?: { username: string; avatar?: string; verified: boolean };
+  creator?: { id?: string; username: string; avatar?: string; verified: boolean };
 };
 
 type RawTemplate = {
@@ -21,7 +21,7 @@ type RawTemplate = {
   category?: string;
   author?: string;
   isUserGenerated?: boolean;
-  userId?: { username?: string; profilePic?: string; userdp?: string; isVerified?: boolean } | null;
+  userId?: { _id?: string; username?: string; profilePic?: string; userdp?: string; isVerified?: boolean } | null;
 };
 
 type TemplatesPage = { templates: RawTemplate[]; pagination?: { hasNextPage?: boolean } };
@@ -38,6 +38,7 @@ function toItem(template: RawTemplate): CommunityItem {
     creator:
       template.isUserGenerated && username
         ? {
+            id: template.userId?._id,
             username,
             avatar: template.userId?.profilePic || template.userId?.userdp || undefined,
             verified: !!template.userId?.isVerified,
@@ -49,7 +50,7 @@ function toItem(template: RawTemplate): CommunityItem {
 /** Same feed and paging as the web gallery (`GET templates`). */
 export async function fetchCommunityPage(page: number, search: string, limit = PAGE_SIZE) {
   const body = await api<{ data?: TemplatesPage }>('templates', {
-    query: { page, limit, ...(search.trim() ? { search: search.trim() } : {}) },
+    query: { mobile: 1, page, limit, ...(search.trim() ? { search: search.trim() } : {}) },
   });
   const data: TemplatesPage = body.data ?? { templates: [] };
   return {

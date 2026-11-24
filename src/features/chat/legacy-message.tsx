@@ -1,3 +1,4 @@
+import { ReportButton } from '@/features/safety/report-button';
 import { Icon } from '@/components/icon';
 import { useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
@@ -126,6 +127,7 @@ export function LegacyMessage({ project, message }: { project: ChatProject; mess
           <Text style={{ fontSize: 12, color: colors.textMuted }}>Processed in {formatDuration(message.totalTime)}</Text>
         </View>
       ) : null}
+      <ReportButton kind='ai' contentId={`message:${id || 'unknown'}`} />
       <MessageActions text={text} reaction={reaction} onLike={() => react('like')} onDislike={() => react('dislike')} onDelete={id ? () => setDeleting(true) : undefined} />
       <ConfirmDrawer
         visible={deleting}

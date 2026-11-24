@@ -31,6 +31,7 @@ type AuthContextValue = {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (input: SignUpInput) => Promise<void>;
   signInWithGoogle: (idToken: string, referralCode?: string) => Promise<void>;
+  signInWithApple: (identityToken: string, authorizationCode: string, nonce: string) => Promise<void>;
   signOut: () => Promise<void>;
   closeAccount: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -162,6 +163,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [startSession]
   );
 
+  const signInWithApple = useCallback(async (identityToken: string, authorizationCode: string, nonce: string) => {
+    await startSession(await api<AuthResponse>('auth/apple', { body: { identityToken, authorizationCode, nonce } }));
+  }, [startSession]);
+
   const signOut = useCallback(async () => {
     // The local session ends even if the server can't be told about it.
     await api('auth/logout').catch(() => undefined);
@@ -180,13 +185,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signIn,
       signUp,
       signInWithGoogle,
+      signInWithApple,
       signOut,
       closeAccount,
       refreshUser,
       retry,
       unreachableReason,
     }),
-    [status, user, signIn, signUp, signInWithGoogle, signOut, closeAccount, refreshUser, retry, unreachableReason]
+    [status, user, signIn, signUp, signInWithGoogle, signInWithApple, signOut, closeAccount, refreshUser, retry, unreachableReason]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

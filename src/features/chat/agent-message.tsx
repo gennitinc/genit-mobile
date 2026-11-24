@@ -1,3 +1,4 @@
+import { ReportButton } from '@/features/safety/report-button';
 import { Icon, type IconName } from '@/components/icon';
 import { GenitMark } from '@/components/genit-mark';
 import * as Clipboard from 'expo-clipboard';
@@ -484,7 +485,7 @@ export function AgentMessage({ run, onDelete }: { run: AgentRun; onDelete: () =>
           </View>
         ) : null}
 
-        {isDone ? <MessageActions text={run.text} onDelete={() => setConfirming(true)} /> : null}
+        {isDone ? <><MessageActions text={run.text} onDelete={() => setConfirming(true)} /><ReportButton kind='ai' contentId={`run:${run.runId}`} /></> : null}
       </View>
 
       <ConfirmDrawer
